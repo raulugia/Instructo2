@@ -1,6 +1,6 @@
 from .models import Week, Test, Question, Answer, Resource, Lesson
 
-from .forms import QuestionForm, AnswerForm, TestForm, WeekForm
+from .forms import QuestionForm, AnswerForm, TestForm, WeekForm, LessonForm
 from django.core.exceptions import ValidationError
 import os
 import tempfile
@@ -26,7 +26,10 @@ def create_week(course, week_number, data, files):
         #print("week form is VALID")
         week = week_form.save()
         #print("week: ", week)
-        number_of_lessons = int(data.get(f"number_of_lessons_week_{week_number}"))
+        #number_of_lessons = int(data.get(f"number_of_lessons_week_{week_number}"))
+        lesson_keys = [key for key in data.keys() if key.startswith(f"week_{week_number}_lesson_") and key.endswith("_title")]
+        number_of_lessons = len(lesson_keys)
+        print("number of lessons: ", number_of_lessons)
         for j in range(1, number_of_lessons + 1):
             lesson = create_lesson(week, week_number, j, data, files)
         #create_resources(week, files.get(f"learning_material_week_{week_number}"))
@@ -37,17 +40,40 @@ def create_week(course, week_number, data, files):
         raise ValidationError(week_form.errors)
 
 
-def create_resources(week, week_number, lesson_number, data, files):
+def create_lesson(week, week_number, lesson_number, data, files):
+    print("creating lesson...")
     lesson_title = data.get(f"week_{week_number}_lesson_{lesson_number}_title")
+    print("lesson title", lesson_title)
     lesson_description = data.get(f"week_{week_number}_lesson_{lesson_number}_description")
 
-def create_lesson(week, data, files):
-    number_of_lessons = data.get(f"number_of_lessons_week_{week.week_number}")
-    for i in range(1, int(number_of_lessons) + 1):
-        lesson = create_lesson(week, i, data, files)
-        create_tests(lesson, data)
+    lesson_form = LessonForm(data={
+        "week": week,
+        "title": lesson_title,
+        "description": lesson_description,
+        "lesson_number": lesson_number
+    })
 
-def create_lesson(week, lesson_number, data, files):
+    if lesson_form.is_valid():
+        print("lesson form is valid")
+        lesson = lesson_form.save()
+
+        learning_material = files.get(f"week_{week_number}_lesson_{lesson_number}_learning_material")
+        if learning_material:
+            print("there is learning material")
+            process_resource(learning_material, "learning_material", lesson=lesson, week=week)
+        
+        return lesson
+    else:
+        #print("week form errors: ",week_form.errors.as_json())
+        raise ValidationError(lesson_form.errors)
+
+# def create_lesson(week, data, files):
+#     number_of_lessons = data.get(f"number_of_lessons_week_{week.week_number}")
+#     for i in range(1, int(number_of_lessons) + 1):
+#         lesson = create_lesson(week, i, data, files)
+#         create_tests(lesson, data)
+
+#def create_lesson(week, lesson_number, data, files):
     # lesson_form = LessonForm(data={
     #     "title": data.get(f"title_lesson_{lesson_number}_week_{week.week_number}"),
     #     "description": data.get(f"description_lesson_{lesson_number}_week_{week.week_number}"),
@@ -77,7 +103,7 @@ def create_test(week, data):
     number_of_questions = len(question_keys)
 
     #create a new task instance using the task form
-    task_form = TaskForm(data={
+    test_form = TestForm(data={
         "title": f"Task for Week {week.week_number}",
         "description": f"Task description for Week {week.week_number}",
         "deadline": data.get(f"deadline_week_{week.week_number}"),
@@ -85,19 +111,19 @@ def create_test(week, data):
     })
 
     #case form validated successfully
-    if task_form.is_valid():
+    if test_form.is_valid():
         #print("TASK FORM IS VALID")
         #save task
-        task = task_form.save()
+        test = test_form.save()
         #loop though each question and create it
         for j in range(1, number_of_questions + 1):
-            create_question(task, week.week_number, j, data)
+            create_question(test, week.week_number, j, data)
 
-        return task
+        return test
     #case form was not validated successfully
     else:
         #print("TASK ERRORS", task_form.errors)
-        raise ValidationError(task_form.errors)
+        raise ValidationError(test_form.errors)
 
 #function to create a question and its linked answers for a given week
 def create_question(test, week_number, question_number, data):
@@ -189,11 +215,12 @@ def save_temp_file(resource_file):
     #return the full path to the temp file
     return temp_file_path
 
-def process_resource(resource_file, resource_type, week=None):
+def process_resource(resource_file, resource_type, week=None, lesson=None):
     print("processing resource")
     #create a new resource - file/thumbnail fields will be updated once the tasks are completed
     resource = Resource.objects.create(
         week = week,
+        lesson= lesson,
         title = resource_file.name,
         resource_format = get_file_format(resource_file),
         resource_type = resource_type

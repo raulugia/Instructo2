@@ -33,6 +33,7 @@ class Week(models.Model):
 
 class Lesson(models.Model):
     week = models.ForeignKey(Week, on_delete=models.CASCADE, related_name="lessons")
+    lesson_number = models.IntegerField()
     title = models.CharField(max_length=100)
     description = models.TextField()
 

@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.forms import ModelForm
-from .models import Course, Question, Answer, Test, Week, Resource, UserAnswer, Feedback
+from .models import Course, Question, Answer, Test, Lesson,Week, Resource, UserAnswer, Feedback
 from django import forms
 from django.utils import timezone
 
@@ -177,6 +177,11 @@ class TestForm(forms.ModelForm):
         
         #return validated week
         return week
+
+class LessonForm (forms.ModelForm):
+    class Meta:
+        model = Lesson
+        fields = ["week", "title", "description", "lesson_number"]
 
 class WeekForm(forms.ModelForm):
     class Meta:

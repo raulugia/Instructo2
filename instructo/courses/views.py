@@ -28,6 +28,7 @@ def create_course_view(request):
     
     elif request.method == "POST":
         form = CourseForm(request.POST, request.FILES)
+        print(request.POST)
         print(request.user)
         print("FILES: ",request.FILES)
         if form.is_valid():
