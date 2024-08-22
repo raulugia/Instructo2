@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Course, Feedback, Enrollment, Question, Answer, Test, Week, UserAnswer, Resource
+from .models import Course, Feedback, Enrollment, Question, Answer, Test, Week, UserAnswer, Resource, Lesson
 from django.core.exceptions import ValidationError
 
 class AnswerSerializer(serializers.ModelSerializer):
@@ -115,18 +115,24 @@ class CourseResourcesSerializer(serializers.ModelSerializer):
 
 
 class DetailsTestSerializer(serializers.ModelSerializer):
-    deadline = serializers.DateField(format=None)
+    deadline = serializers.DateField(format="%d/%m/%Y")
 
     class Meta:
         model = Test
         fields = ["title", "deadline"]
 
+class DetailsLessonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lesson
+        fields = ["lesson_number","title"]
+
 class DetailsWeekSerializer(serializers.ModelSerializer):
     tests = DetailsTestSerializer(many=True, read_only=True)
+    lessons = DetailsLessonSerializer(many=True, read_only=True)
 
     class Meta:
         model = Week
-        fields = ["tests", "week_number"]
+        fields = ["tests", "week_number", "lessons"]
 
 class DetailsFeedbackSerializer(serializers.ModelSerializer):
     student_name = serializers.CharField(source="student.username", read_only=True)
@@ -141,10 +147,14 @@ class DetailsCoursesSerializer(serializers.ModelSerializer):
     cover_thumbnail = serializers.SerializerMethodField()
     weeks = DetailsWeekSerializer(many=True, read_only=True)
     feedbacks = DetailsFeedbackSerializer(source="course_feedbacks",many=True, read_only=True)
+    teacher_username = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
-        fields=["id","teacher","title", "description","cover_thumbnail", "weeks", "duration_weeks", "feedbacks"]
+        fields=["id","teacher_username","title", "description","cover_thumbnail", "weeks", "duration_weeks", "feedbacks"]
 
     def get_cover_thumbnail(self, obj):
         return obj.cover_picture.thumbnail if obj.cover_picture else None
+    
+    def get_teacher_username(self, obj):
+        return obj.teacher.username

@@ -14,7 +14,7 @@
                     <p class="mt-3">{{ course_data.description }}</p>
                 </div>
                 <div>
-                    <p class="fs-10">Created by @{{ course_data.teacher }}</p>
+                    <p class="fs-10">Created by @{{ course_data.teacher_username }}</p>
                     <p class="fs-10">Duration: {{ course_data.duration_weeks }} weeks</p>
                 </div>
             </div>
@@ -55,10 +55,16 @@
                             Week {{ week.week_number }}
                         </p>
                         <div class="collapse bg-white border px-2 py-1 mt-2" id="collapse_{{ week.week_number }}">
-                            {% for task in week.tasks %}
+                            {% for lesson in week.lessons %}
                             <div class="d-flex justify-content-between">
-                                <p><span style="font-weight: 500">Task:</span> {{ task.title }}</p>
-                                <p><span style="font-weight: 500">Deadline:</span> {{ task.deadline|date:"d/m/y" }}</p>
+                                <p><span style="font-weight: 500">Lesson {{ lesson.lesson_number}}:</span> {{ lesson.title }}</p>
+                            </div>
+                            {% endfor %}
+                            {% for test in week.tests %}
+                            <div class="d-flex justify-content-between">
+                                <p style="font-weight: 500">{{ test.title }}</p>
+                                <p><span style="font-weight: 500">Deadline: </span>{{ test.deadline }}</p>
+                                {% comment %} <p><span style="font-weight: 500">Deadline:</span> {{ task.deadline|date:"d/m/y" }}</p> {% endcomment %}
                             </div>
                             {% endfor %}
                         </div>

@@ -67,34 +67,6 @@ def create_lesson(week, week_number, lesson_number, data, files):
         #print("week form errors: ",week_form.errors.as_json())
         raise ValidationError(lesson_form.errors)
 
-# def create_lesson(week, data, files):
-#     number_of_lessons = data.get(f"number_of_lessons_week_{week.week_number}")
-#     for i in range(1, int(number_of_lessons) + 1):
-#         lesson = create_lesson(week, i, data, files)
-#         create_tests(lesson, data)
-
-#def create_lesson(week, lesson_number, data, files):
-    # lesson_form = LessonForm(data={
-    #     "title": data.get(f"title_lesson_{lesson_number}_week_{week.week_number}"),
-    #     "description": data.get(f"description_lesson_{lesson_number}_week_{week.week_number}"),
-    #     "week": week.id
-    # })
-
-    # if lesson_form.is_valid():
-    #     lesson = lesson_form.save()
-    #     create_resources(lesson, files.get(f"learning_material_lesson_{lesson_number}_week_{week.week_number}"))
-    #     return lesson
-    # else:
-    #     raise ValidationError(lesson_form.errors)
-    pass
-
-def create_tests(lesson, data):
-    # number_of_tests = data.get(f"number_of_tests_lesson_{lesson.id}")
-    # for j in range(1, int(number_of_tests) + 1):
-    #     test = create_test(lesson, j, data)
-    #     create_questions(test, data)
-    pass
-
 #function to create a task and the questions and answers linked to it for a given week
 def create_test(week, data):
     #get the keys linked to questions - needed due to dynamic form
