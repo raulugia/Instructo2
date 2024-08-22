@@ -63,31 +63,31 @@
         
             <div id="collapseTest" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
               <div class="card-body bg-light">
-                {% for task in course_data.tasks %}
+                {% for test in course_data.tests %}
                 <div class="my-5 d-flex justify-content-between align-items-end w-100 border rounded-2 px-3 py-3 bg-white">
                         <div class="d-flex flex-column justify-content-between align-items-start w-100">
                             <div>
-                                <h3 class="mb-3 fs-3">{{ task.title }}</h3>
-                                <p class="fs-5 mb-5">{{ task.description }}</p>
+                                <h3 class="mb-3 fs-3">{{ test.title }}</h3>
+                                <p class="fs-5 mb-5">{{ test.description }}</p>
                             </div>
                             <div>
-                                <p class="mt-5 text-decoration-underline text-secondary">You must complete this task by {{ task.deadline|date:"d/m/y" }}</p>
+                                <p class="mt-5 text-decoration-underline text-secondary">You must complete this test by {{ test.deadline }}</p>
                             </div>
                         </div>
                         
                         <div class="d-flex flex-column justify-content-between align-items-end w-100">
                             <div class="mb-5 fs-5" style="font-weight: 600">
-                                {% if task.grade is not None  %}
-                                    <p class="{% if task.grade < 50 %} text-danger {% else %} text-success {% endif %}">Grade: {{ task.grade }}%</p>
+                                {% if test.grade is not None  %}
+                                    <p class="{% if test.grade < 50 %} text-danger {% else %} text-success {% endif %}">Grade: {{ test.grade }}%</p>
                                 {% else %}
                                     <p>Grade: -- %</p>
                                 {% endif %}
                             </div>
                             <div>
-                                {% if task.grade is None %}
+                                {% if test.grade is None %}
                                     <a 
                                         class="btn btn-lg btn-success" 
-                                        href="{%  url 'test_form_view' course_id=course.id week_number=week_number task_id=task.id %}?mode=complete"
+                                        href="{%  url 'test_form_view' course_id=course.id week_number=week_number test_id=test.id %}?mode=complete"
                                     >
                                         Complete Test
                                     </a>
@@ -95,14 +95,14 @@
                                     <div class="d-flex gap-2">
                                         <a 
                                             class="btn btn-lg btn-primary" 
-                                            href="{%  url 'test_form_view' course_id=course.id week_number=week_number task_id=task.id %}?mode=feedback"
+                                            href="{%  url 'test_form_view' course_id=course.id week_number=week_number test_id=test.id %}?mode=feedback"
                                         >
                                             View Feedback
                                         </a>
-                                        {% if task.grade < 50 %}
+                                        {% if test.grade < 50 %}
                                         <a 
                                             class="btn btn-lg btn-success" 
-                                            href="{%  url 'test_form_view' course_id=course.id week_number=week_number task_id=task.id %}?mode=retake"
+                                            href="{%  url 'test_form_view' course_id=course.id week_number=week_number test_id=test.id %}?mode=retake"
                                         >
                                             Retake Test
                                         </a>

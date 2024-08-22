@@ -45,7 +45,7 @@
             {% endfor %}
         </ol>
         <div class="w-100 d-flex justify-content-end gap-2">
-            <a href="{% url 'my_course_details_view' course_id=task.week.course.id week_number=week_number %}" class="btn btn-secondary mt-5">Go Back</a>
+            <a href="{% url 'my_course_details_view' course_id=test.week.course.id week_number=week_number %}" class="btn btn-secondary mt-5">Go Back</a>
             {% if mode != "feedback" %}
                 <button type="submit" class="btn btn-primary mt-5">Submit Test</button>
             {% endif %}

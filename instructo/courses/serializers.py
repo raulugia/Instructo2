@@ -33,7 +33,7 @@ class TestSerializer(serializers.ModelSerializer):
     questions = QuestionSerializer(many=True, read_only=True)
     is_passed = serializers.BooleanField(read_only=True)
     grade = serializers.SerializerMethodField()
-    deadline = serializers.DateField(format=None)
+    deadline = serializers.DateField(format="%d/%m/%Y")
 
     class Meta:
         model = Test
