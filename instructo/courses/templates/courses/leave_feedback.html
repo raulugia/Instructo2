@@ -1,0 +1,54 @@
+{% extends "navbar.html" %}
+{% load custom_filters %}
+
+{% block maincontent %}
+<div class="d-flex min-vh-100 justify-content-between align-items-start bg-light pt-5">
+    <div class="d-flex flex-column gap-3 mt-5 ms-5">
+        <div class="mb-5 fw-bold">
+            <h6>{{ course.title }}</h6>
+            <div class="bg-secondary rounded-3 overflow-hidden me-5 mt-3" style="width: 110px; height: 80px;">
+                <img class="w-100 h-100" src={{ course.cover_picture.thumbnail }} />
+            </div>
+        </div>
+        <a href="{% url 'my_course_details_view' course_id=course.id %}" role="button" class="fs-5 text-dark fw-600">Go Back</a>
+    </div>
+
+       
+    <div class="mt-5 px-4 me-4 py-4 w-100 bg-white d-flex flex-column gap-2 ps-5 border border-2 rounded-3" style="min-height: 500px">
+        <h3>Leave Your Feedback</h3>
+        <p class="mt-2">Use the following text box to review this course.</p>
+        <div class="d-flex flex-column">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert {% if message.tags %}alert-{{ message.tags}}{% else %}alert-success{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if form.errors %}
+                <div class="alert alert-danger py-0 mb-0">
+                    {% for field, error in form.errors.items %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-floating mt-3">
+                <textarea name="feedback" class="w-100 px-2 py-2" placeholder="Leave a comment here..." id="floatingTextarea2" style="height: 150px">
+                    {% if existing_feedback %}{{ feedback.feedback }} {% endif %}
+                </textarea>
+            </div>
+            <div class="mt-4 d-flex justify-content-end">
+                {% if existing_feedback %}
+                    <button type="submit" class="btn btn-primary">Update Feedback</button>
+                {% else %}
+                    <button type="submit" class="btn btn-primary">Submit Feedback</button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock maincontent %}

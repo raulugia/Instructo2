@@ -1,0 +1,33 @@
+h1, h2, h3, h4, h5, h6, p {
+    margin-bottom: 0 !important;
+    padding: 0 !important;
+}
+
+a {
+    text-decoration: none !important;
+}
+
+.fs-60 {
+    font-size: 80px;
+}
+
+.fs-10 {
+    font-size: 13px;
+}
+
+.fw-600 {
+    font-weight: 600;
+}
+
+.rounded-20 {
+    border-radius: 20px;
+}
+
+
+.custom-rounded-top-start {
+    border-radius: 10px 10px 0px 10px;
+}
+
+.custom-rounded-top-end {
+    border-radius: 10px 10px 10px 0px;
+}

@@ -1,0 +1,55 @@
+{% extends "navbar.html" %}
+{% load custom_filters %}
+
+{% block maincontent %}
+<div class="d-flex flex-column min-vh-100 justify-content-start align-items-center bg-light pt-5">
+    <form method="post" class="border mt-5 bg-white w-75 py-4 px-4 shadow-sm rounded">
+        {% csrf_token %}
+        <div class="w-100 d-flex justify-content-between">
+            <h1 class="fs-3 mb-4">Week {{ week_number }} Test</h1>
+            {% if mode == "feedback" %}
+                <h5 class="mt-1 {% if grade < 50 %} text-danger {% else %} text-success {% endif %}">Your Grade: {{ grade }}%</h5>
+            {% endif %}
+        </div>
+        <p>Select the correct answer or answers for the following questions:</p>
+        <ol class="mt-3">
+            {% for question in questions %}
+                <li class="mb-2 mt-3" style="font-weight: 600;">{{ question.text }}:</li>
+                {% for answer in question.answers.all %}
+                <div class="form-check">
+                    <input 
+                        type="checkbox" 
+                        name="question_{{ question.id }}"
+                        value="{{ answer.id }}" 
+                        id="answer_{{ answer.id }}" 
+                        class="form-check-input"
+                        style="opacity: 1"
+                        {% if mode == "feedback" and user_answers|dict_get:question.id == answer.id %} checked {% endif %}
+                        {% if mode == "feedback" %} disabled {% endif %}
+                    >
+                    <label for="answer_{{ answer.id }}" class="form-check-label" style="opacity: 1">{{ answer.text }}</label>
+                </div>
+                
+                {% if mode == "feedback" %}
+                    <div class="{% if user_answers|dict_get:question.id == answer.id and answer.is_correct %} text-success {% else %} text-danger {% endif %}" style="font-weight: 500">
+                        {% if user_answers|dict_get:question.id == answer.id %}
+                            {% if answer.is_correct %}
+                                <p>Correct</p>
+                            {% else %}
+                                <p>Incorrect</p>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                {% endif %}
+                {% endfor %}
+            {% endfor %}
+        </ol>
+        <div class="w-100 d-flex justify-content-end gap-2">
+            <a href="{% url 'my_course_details_view' course_id=task.week.course.id week_number=week_number %}" class="btn btn-secondary mt-5">Go Back</a>
+            {% if mode != "feedback" %}
+                <button type="submit" class="btn btn-primary mt-5">Submit Test</button>
+            {% endif %}
+        </div>
+    </form>
+</div>
+{% endblock maincontent %}

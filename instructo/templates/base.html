@@ -1,0 +1,26 @@
+{% load static %}
+{% load bootstrap5 %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructo</title>
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}"></link>
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
+</head>
+
+<body class="w-100 min-vh-100 bg-light">
+    {% block content %}
+    {% endblock content %}
+
+    {% if debug %}
+        <script src="{% static 'browser_reload/reload.js' %}}"></script>
+    {% endif %}
+</body>
+
+</html>

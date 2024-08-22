@@ -1,0 +1,105 @@
+{% extends "navbar.html" %}
+{% load custom_filters %}
+
+{% block maincontent %}
+<div class="d-flex flex-column min-vh-100 justify-content-start align-items-start bg-light pt-5 px-5">
+    <div class="w-100 mt-5 d-flex justify-content-between align-items-end border border-dark border-2 bg-white px-4 py-3" style="border-radius: 10px">
+        <div class="w-100 d-flex justify-content-between">
+            <div class="bg-secondary rounded-3 me-5 object-cover w-50" style="width: 350px; height: 250px;">
+                <img class="w-100 h-100 border rounded-3 overflow-hidden" src={{ course_data.cover_thumbnail}} />
+            </div>
+            <div class="d-flex flex-column justify-content-between w-50">
+                <div>
+                    <h2>{{ course_data.title }}</h2>
+                    <p class="mt-3">{{ course_data.description }}</p>
+                </div>
+                <div>
+                    <p class="fs-10">Created by @{{ course_data.teacher }}</p>
+                    <p class="fs-10">Duration: {{ course_data.duration_weeks }} weeks</p>
+                </div>
+            </div>
+        </div>
+        <div class="w-25 d-flex justify-content-end">
+            <!-- case student has not enrolled -->
+            {% if is_student and not is_enrolled %}
+            <form action="{% url 'enroll_course_view' course_data.id %}" method="post">
+                {% csrf_token %}
+                <button class="btn btn-primary btn-lg" id="enroll-btn">Enroll Course</button>
+            </form>
+            <!-- case student has enrolled -->
+            {% elif is_student and is_enrolled %}
+                <a href="{% url 'my_course_details_view' course_data.id %}" role="button" class="btn btn-primary btn-lg">Go To Course</a>
+            <!-- case student has completed the course -->
+            {% elif student_completed_course %}
+                <p class="py-2 px-3 rounded-3 bg-success text-white fw-normal fs-5">Course Completed</p>
+            <!-- Case user is the creator of the course -->
+            {% elif is_teacher and is_course_teacher %}
+                <a role="button" href="{% url 'manage_students_view' course_data.id %}" class="btn btn-primary btn-lg">Manage Students</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="d-flex flex-column w-100 mt-5">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if 'error' in message.tags %}alert-danger{% else %}alert-success{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        <div>
+            <h3>Course Content</h3>
+            <div class="d-flex flex-column mt-3 w-75">
+                {% for week in course_data.weeks %}
+                    <div class="py-2 border border-dark px-4" style="background-color: #D1D1D1;">
+                        <p  data-bs-toggle="collapse" data-bs-target ="#collapse_{{ week.week_number }}" role="button" class="fw-600" style="font-size: 16px;" >
+                            Week {{ week.week_number }}
+                        </p>
+                        <div class="collapse bg-white border px-2 py-1 mt-2" id="collapse_{{ week.week_number }}">
+                            {% for task in week.tasks %}
+                            <div class="d-flex justify-content-between">
+                                <p><span style="font-weight: 500">Task:</span> {{ task.title }}</p>
+                                <p><span style="font-weight: 500">Deadline:</span> {{ task.deadline|date:"d/m/y" }}</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="mt-5">
+            <h3>Feedback</h3>
+            <div class="d-flex flex-column mt-3">
+                {% for feedback in course_data.feedbacks %}
+                <div class="card mb-2 py-2" style="max-width: 540px;">
+                    <div class="row g-0">
+                        <div class="col-md-4 my-auto d-flex flex-column align-items-center jutify-content-between">
+                            <div class="col-md-4 bg-primary rounded-circle" style="height: 100px; width: 100px">
+                              <!-- <img src="..." class="img-fluid rounded-start" alt="..."> -->
+                            </div>
+                            <p class="fw-600">@{{ feedback.student_name }}</p>
+                        </div>
+                      <div class="col-md-8">
+                        <div class="card-body">
+                          <p class="card-text lh-sm">
+                            {{ feedback.feedback }}
+                          </p>
+                          <div class="w-100 d-flex justify-content-end mt-3">
+                            <!-- Display updated_at if updated_at and created_at are different meaning user updated their feedback -->
+                            {% if feedback.updated_at != feedback.created_at %}
+                                <p class="card-text"><small class="text-muted">Updated at {{ feedback.updated_at}}</small></p>
+                            {% else %}
+                                <p class="card-text"><small class="text-muted">Created at {{ feedback.created_at}}</small></p>
+                            {% endif %}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock maincontent %}

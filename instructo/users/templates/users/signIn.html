@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container vh-100 d-flex justify-content-center align-items-center bg-light">
+    <div class="border container px-0 d-flex justify-content-between rounded-20 overflow-hidden shadow">
+        <form method="post" class="w-100 bg-white px-5 py-4">
+            {% csrf_token %}
+            <div class="d-flex flex-column justify-content-between w-100">
+                <h1 class="fs-3 fw-bold">INSTRUCTO</h1>
+            </div>
+            <div class="mt-5 d-flex flex-column align-items-start py-4 px-5">
+                <h1 class="fs-60 fw-bold mx-auto">Hi there!</h1>
+                <p class="mx-auto">Welcome to Instructo</p>
+                <div class="mt-4 w-100">
+                    {% comment %} Render message confirming account was created {% endcomment %}
+                    {% if messages %}
+                        {% for message in messages %}
+                            <p class="text-success">{{ message }}</p>
+                        {% endfor %}
+                    {% endif %}
+                    <label for="email" class="form-label">Email address</label>
+                    <input 
+                        type="email" 
+                        name="email" 
+                        id="email" 
+                        class="form-control w-100" 
+                        placeholder="name@example.com" 
+                    />
+                </div>
+                <div class="mt-3 w-100">
+                    <label for="password" class="form-label">Password</label>
+                    <input 
+                        type="password" 
+                        name="password" 
+                        id="password" 
+                        class="form-control w-100 mb-2" 
+                        placeholder="Password" 
+                    />
+                </div>
+                <a href="{% url 'users:password_reset' %}" class="fs-10 ms-auto">Forgot password?</a>
+
+                <button type="submit" class="mt-5 mb-4 btn text-white rounded-pill w-100 py-2 bg-black">Sign In</button>
+                <p class="fs-10 ml-auto">Don't have an account? <a href="{% url 'users:register_view' %}" class="text-primary">Sign up</a></p>
+            </div>
+        </form>
+
+        <div class="container">
+            <h1 class="fs-2">right side</h1>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "navbar.html" %}
+{% load custom_filters %}
+
+{% block maincontent %}
+<div class="d-flex min-vh-100 justify-content-between align-items-start bg-light pt-5">
+    <div class="d-flex flex-column gap-3 mt-5 ms-5">
+        <div class="mb-5 fw-bold">
+            <h6>{{ course_data.title }}</h6>
+            <div class="bg-secondary rounded-3 overflow-hidden me-5 mt-3" style="width: 110px; height: 80px;">
+                <img class="w-100 h-100" src={{ course_data.cover_thumbnail }} />
+            </div>
+        </div>
+        <h5 data-bs-toggle="collapse" data-bs-target ="#collapse" role="button">Weeks</h5>
+        <div class="ms-2 collapse" id="collapse">
+            {% for week_number in course_data.duration_weeks|times %}
+                <p>Week {{ week_number }}</p>
+            {% endfor %}
+        </div>
+        <h5 role="button">Resources</h5>
+        <h5 role="button">Grades</h5>
+        <a href="{% url 'group_chat_view' course_id=course_data.id %}" role="button">Chat</a>
+    </div>
+
+       
+
+    {% comment %} Left side {% endcomment %}
+    <div class="mt-5 px-4 me-4 py-4 w-100 bg-white d-flex flex-column gap-2 ps-5 border border-2 rounded-3" id="accordion">
+        <h3 class="mb-3">Additional Resources</h3>
+        <p class="lh-sm">The following resources provide valuable information about the course and offer additional insights to expand your knowledge.</p>
+        <div class="d-flex flex-column gap-1">
+            {% for resource in course_data.additional_resources %}
+                <a>{{ resource.title }}</a>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock maincontent %}
