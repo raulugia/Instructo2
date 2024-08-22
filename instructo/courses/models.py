@@ -117,9 +117,10 @@ class Resource(models.Model):
         ("additional_resource", "Additional Resource"),
         ("course_cover_picture", "Course Cover Picture"),
         ("user_profile_picture", "User Profile Picture"),
+        ("status_update", "Status Update"),
     ]
 
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="additional_resources")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="additional_resources", null=True, blank=True)
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name="lesson_resources", null=True, blank=True)
     title = models.CharField(max_length=100)
     file = models.URLField(max_length=200)
