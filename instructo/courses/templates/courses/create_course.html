@@ -146,47 +146,87 @@
             const collapseBody = document.createElement("div")
             collapseBody.className = "collapse"
             collapseBody.innerHTML = `
-                    <div>
-                        <h3 class="fs-5 mt-2">Learning Material</h3>
-                        <input type="file" name="learning_material_week${i + 1}" accept=".jpg, .jpeg, .svg, .png, .pdf "/>
+                <div class="mt-2">
+                    <p class="">Please enter the number of lessons (1-10):</p>
+                    <div class="d-flex align-items-start gap-4">
+                        <div class="input-group mb-2" style="width: 140px">
+                            <input type="number" min="1" max="10" required class="form-control form-control" placeholder="1" id="number_of_lessons_week_${i + 1}" value="1"/>
+                            <span class="input-group-text" id="basic-addon3">lessons</span>
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="createLessons(${i + 1})">Create Lessons</button>
                     </div>
+                </div>
 
-                    <div class="w-100">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h3 class="fs-5 mt-4">Test</h3>
-                            <div>
-                                <label for="{{ form.deadline.id_for_label }}" class="form-label">Deadline</label>
-                                <input 
-                                    type="date" 
-                                    name="deadline_week_${i + 1}" 
-                                    id="deadline_week_${i + 1}"  
-                                    class="form-control w-100" 
-                                    required
-                                />
-                                {% if form.deadline.errors %}
-                                    <p class="fs-10 text-danger">{{ form.deadline.errors.0 }}</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <p class="">Please enter the number of questions (1-10):</p>
-                        <div class="d-flex align-items-start gap-4">
-                            <div class="input-group mb-2" style="width: 140px">
-                                <input type="number" min="1" max="10" required class="form-control form-control" placeholder="1" id="questions_week_${i + 1}" value="1"/>
-                                <span class="input-group-text" id="basic-addon3">questions</span>
-                            </div>
-                            <button type="button" class="btn btn-primary" onclick="addQuestions(${i + 1})">Create Questions</button>
-                        </div>
-
-                        <div class="d-flex flex-column w-100" id="questionsContainer_week_${i + 1}">
-
+                <div id="lesson_content_week_${i + 1}">
+                    
+                </div>
+                    
+                <div class="w-100">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="fs-5 mt-4">Test</h3>
+                        <div>
+                            <label for="{{ form.deadline.id_for_label }}" class="form-label">Deadline</label>
+                            <input 
+                                type="date" 
+                                name="deadline_week_${i + 1}" 
+                                id="deadline_week_${i + 1}"  
+                                class="form-control w-100" 
+                                required
+                            />
+                            {% if form.deadline.errors %}
+                                <p class="fs-10 text-danger">{{ form.deadline.errors.0 }}</p>
+                            {% endif %}
                         </div>
                     </div>
+                    <p class="">Please enter the number of questions (1-10):</p>
+                    <div class="d-flex align-items-start gap-4">
+                        <div class="input-group mb-2" style="width: 140px">
+                            <input type="number" min="1" max="10" required class="form-control form-control" placeholder="1" id="questions_week_${i + 1}" value="1"/>
+                            <span class="input-group-text" id="basic-addon3">questions</span>
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="addQuestions(${i + 1})">Create Questions</button>
+                    </div>
+
+                    <div class="d-flex flex-column w-100" id="questionsContainer_week_${i + 1}">
+
+                    </div>
+                </div>
             `
+
             collapseBody.id = `week${i+1}`
 
             weeksContainer.appendChild(collapsibleBtn)
             weeksContainer.appendChild(collapseBody)
             console.log("finished", weeksContainer)
+        }
+    }
+
+    function createLessons(weekNumber) {
+        const lessonContentContainer = document.getElementById(`lesson_content_week_${weekNumber}`)
+        const number_of_lessons = document.getElementById(`number_of_lessons_week_${weekNumber}`).value
+
+        lessonContentContainer.innerHTML = ""
+
+        for(let i = 0; i < number_of_lessons; i++){
+            const lessonDataContainer = document.createElement("div")
+            lessonDataContainer.className = "d-flex flex-column"
+            lessonDataContainer.innerHTML = `
+                <div class="mb-2 mt-3 pt-2 w-100 border-top border-secondary border-3">
+                    <h5 class="fs-18 mb-1">Lesson ${i + 1} Title</h5>
+                    <input class="w-100" type="text" name="week_${weekNumber}_lesson_${i + 1}_title" />
+                </div>
+
+                <div class="w-100 mt-2">
+                    <h5 class="fs-18 mb-1">Lesson ${i + 1} Description</h5>
+                    <textarea class="w-100" type="text" name="week_${weekNumber}_lesson_${i + 1}_description" style="height: 80px"></textarea>
+                </div>
+
+                <div>
+                    <h5 class="fs-18 mb-1">Learning Material</h5>
+                    <input type="file" name="week${i + 1}_lesson_${i + 1}_learning_material" accept=".jpg, .jpeg, .svg, .png, .pdf "/>
+                </div>
+            `
+            lessonContentContainer.appendChild(lessonDataContainer)
         }
     }
 

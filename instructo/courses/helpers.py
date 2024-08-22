@@ -26,6 +26,9 @@ def create_week(course, week_number, data, files):
         #print("week form is VALID")
         week = week_form.save()
         #print("week: ", week)
+        number_of_lessons = int(data.get(f"number_of_lessons_week_{week_number}"))
+        for j in range(1, number_of_lessons + 1):
+            lesson = create_lesson(week, week_number, j, data, files)
         #create_resources(week, files.get(f"learning_material_week_{week_number}"))
         create_test(week, data)
         return week
@@ -34,11 +37,11 @@ def create_week(course, week_number, data, files):
         raise ValidationError(week_form.errors)
 
 
-def create_resources(week, resource_file):
-    if resource_file:
-        pass
+def create_resources(week, week_number, lesson_number, data, files):
+    lesson_title = data.get(f"week_{week_number}_lesson_{lesson_number}_title")
+    lesson_description = data.get(f"week_{week_number}_lesson_{lesson_number}_description")
 
-def create_lessons(week, data, files):
+def create_lesson(week, data, files):
     number_of_lessons = data.get(f"number_of_lessons_week_{week.week_number}")
     for i in range(1, int(number_of_lessons) + 1):
         lesson = create_lesson(week, i, data, files)
@@ -68,34 +71,33 @@ def create_tests(lesson, data):
 
 #function to create a task and the questions and answers linked to it for a given week
 def create_test(week, data):
-#     #get the keys linked to questions - needed due to dynamic form
-#     question_keys = [key for key in data.keys() if key.startswith(f"question_week_{week.week_number}_")]
-#     #determine the number of questions based on the length of question_keys
-#     number_of_questions = len(question_keys)
+    #get the keys linked to questions - needed due to dynamic form
+    question_keys = [key for key in data.keys() if key.startswith(f"question_week_{week.week_number}_")]
+    #determine the number of questions based on the length of question_keys
+    number_of_questions = len(question_keys)
 
-#     #create a new task instance using the task form
-#     task_form = TaskForm(data={
-#         "title": f"Task for Week {week.week_number}",
-#         "description": f"Task description for Week {week.week_number}",
-#         "deadline": data.get(f"deadline_week_{week.week_number}"),
-#         "week": week.id
-#     })
+    #create a new task instance using the task form
+    task_form = TaskForm(data={
+        "title": f"Task for Week {week.week_number}",
+        "description": f"Task description for Week {week.week_number}",
+        "deadline": data.get(f"deadline_week_{week.week_number}"),
+        "week": week.id
+    })
 
-#     #case form validated successfully
-#     if task_form.is_valid():
-#         #print("TASK FORM IS VALID")
-#         #save task
-#         task = task_form.save()
-#         #loop though each question and create it
-#         for j in range(1, number_of_questions + 1):
-#             create_question(task, week.week_number, j, data)
+    #case form validated successfully
+    if task_form.is_valid():
+        #print("TASK FORM IS VALID")
+        #save task
+        task = task_form.save()
+        #loop though each question and create it
+        for j in range(1, number_of_questions + 1):
+            create_question(task, week.week_number, j, data)
 
-#         return task
-#     #case form was not validated successfully
-#     else:
-#         #print("TASK ERRORS", task_form.errors)
-#         raise ValidationError(task_form.errors)
-    pass
+        return task
+    #case form was not validated successfully
+    else:
+        #print("TASK ERRORS", task_form.errors)
+        raise ValidationError(task_form.errors)
 
 #function to create a question and its linked answers for a given week
 def create_question(test, week_number, question_number, data):

@@ -66,10 +66,10 @@ def create_course_view(request):
                             week = create_week(course, i, request.POST, request.FILES)
                             #print("created week: ", week)
 
-                            learning_material = request.FILES.get(f"learning_material_week{i}")
-                            print("LEARNING MATERIAL: ", learning_material)
-                            if learning_material:
-                                process_resource(learning_material, "learning_material", week=week)
+                            #learning_material = request.FILES.get(f"learning_material_week{i}")
+                            #print("LEARNING MATERIAL: ", learning_material)
+                            # if learning_material:
+                            #     process_resource(learning_material, "learning_material", week=week)
 
                         except ValidationError as error:
                             error_message = " ".join(str(message) for message in error.messages)
