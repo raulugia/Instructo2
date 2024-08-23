@@ -8,6 +8,9 @@ from django.contrib.auth.decorators import login_required
 from .models import CustomUser
 from courses.models import Course
 from django.db.models import Q
+from status_updates.models import StatusUpdate
+from status_updates.forms import StatusUpdateForm
+from django.core.exceptions import ValidationError
 
 #All the code in this file was written without assistance
 
@@ -103,7 +106,19 @@ def register_view(request):
 
 def home_view(request):
     if request.method == "GET":
+
         return render(request, "users/home.html")
+    
+    elif request.method == "POST":
+        status_update_form = StatusUpdateForm(request.POST, request.FILES)
+        if status_update_form.is_valid():
+            try:
+                status_update = status_update_form.save(commit=False)
+
+
+            except ValidationError as error:
+                return render(request, "students/home.html", {"form": status_update_form})
+
 
 #view for the search bar 
 @login_required

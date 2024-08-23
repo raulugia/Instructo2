@@ -3,7 +3,7 @@ from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-
+from django.utils.functional import lazy
 #All the code in this file was written without assistance
 
 #this model represents the courses created by teachers
@@ -122,6 +122,9 @@ class Resource(models.Model):
 
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="additional_resources", null=True, blank=True)
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name="lesson_resources", null=True, blank=True)
+    #use lazy import to avoid circular import
+    status_update = models.ForeignKey("status_updates.StatusUpdate", on_delete=models.CASCADE, related_name="status_update_resource", null=True, blank=True)
+
     title = models.CharField(max_length=100)
     file = models.URLField(max_length=200)
     thumbnail = models.URLField(max_length=200, null=True, blank=True)
