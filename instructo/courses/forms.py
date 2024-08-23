@@ -238,7 +238,7 @@ class ResourceForm(forms.ModelForm):
         file = self.cleaned_data.get("file")
 
         #ensure the file url is valid and ends with an allowed extension
-        allowed_extensions = [".pdf", ".doc", ".docx", ".mp4", ".avi", ".jpg", ".jpeg", ".svg", ".png", ".bmp", ".webp", ".heic", ".heif", ".tiff"]
+        allowed_extensions = [".pdf", ".jpg", ".jpeg", ".svg", ".png"]
         if file and not any(file.lower().endswith(extension) for extension in allowed_extensions):
             #raise a validation error
             raise ValidationError("Invalid file format.")

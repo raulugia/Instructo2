@@ -11,6 +11,7 @@ from django.db.models import Q
 from status_updates.models import StatusUpdate
 from status_updates.forms import StatusUpdateForm
 from django.core.exceptions import ValidationError
+from .serializers import StatusUpdateSerializer, ResourceSerializer
 
 #All the code in this file was written without assistance
 
@@ -104,20 +105,22 @@ def register_view(request):
     #case request method is not GET or POST - return bad request
     return JsonResponse({"error": "Bad Request"}, status=400)
 
+@login_required
 def home_view(request):
+    context = {}
     if request.method == "GET":
+        status_update_form = StatusUpdateForm()
+        user_status_updates = StatusUpdate.objects.filter(user=request.user).order_by('-created_at')
 
-        return render(request, "users/home.html")
-    
-    elif request.method == "POST":
-        status_update_form = StatusUpdateForm(request.POST, request.FILES)
-        if status_update_form.is_valid():
-            try:
-                status_update = status_update_form.save(commit=False)
-
-
-            except ValidationError as error:
-                return render(request, "students/home.html", {"form": status_update_form})
+        status_updates_serializer = StatusUpdateSerializer(user_status_updates, many=True)
+        user_courses = Course.objects.filter(teacher=request.user)
+        print(status_updates_serializer.data)
+        context = {
+            "form": status_update_form,
+            "status_updates":  status_updates_serializer.data,
+            "courses": user_courses,
+        }
+        return render(request, "users/home.html", context)
 
 
 #view for the search bar 

@@ -52,7 +52,7 @@ def create_course_view(request):
 
                     additional_resources = request.FILES.getlist("additional_resources")
                     for resource_file in additional_resources:
-                        additional_resource = process_resource(resource_file, "additional_resource", week=None)
+                        additional_resource = process_resource(resource_file, "additional_resource")
                         course.additional_resources.add(additional_resource)
                     
                     course.save()

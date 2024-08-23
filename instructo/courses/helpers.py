@@ -187,11 +187,10 @@ def save_temp_file(resource_file):
     #return the full path to the temp file
     return temp_file_path
 
-def process_resource(resource_file, resource_type, week=None, lesson=None, status_update=None):
+def process_resource(resource_file, resource_type, course=None, lesson=None, status_update=None):
     print("processing resource")
     #create a new resource - file/thumbnail fields will be updated once the tasks are completed
     resource = Resource.objects.create(
-        week = week,
         lesson= lesson,
         status_update = status_update,
         title = resource_file.name,
