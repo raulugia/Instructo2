@@ -13,23 +13,41 @@
         <form action="{% url 'status_updates:create_status_update_view' %}" method="post" enctype="multipart/form-data" class="border w-75 mx-auto my-4 rounded-3 px-2 py-1 bg-white shadow-sm">
             {% csrf_token %}
             <p class="mb-2" style="font-size: 20px">Create a new status update</p>
+            
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
             <textarea name="content" id="" class="w-100 bg-light rounded-2" style="height: 100px"></textarea>
+
+            {% if form.content.errors %}
+                <div class="alert alert-danger">
+                    {{ form.content.errors }}
+                </div>
+            {% endif %}
+
             <div class="w-100 mb-3">
                 <label for="formFile" class="form-label">Add a file if you wish to:</label>
                 <input name="resource_file" class="form-control" type="file" id="formFile" accept=".jpg, .jpeg, .svg, .png, .pdf ">
+                {% if form.resource_file.errors %}
+                    <div class="alert alert-danger">
+                        {{ form.resource_file.errors }}
+                    </div>
+                {% endif %}
             </div>
-
             <div class="d-flex w-100 justify-content-end mb-1">
                 <button type="submit" class="btn btn-primary" style="width: 30%">Post</button>
             </div>
         </form>
         <div class="w-75 mx-auto rounded-3 mt-2 d-flex flex-column gap-3">
-            {% for status_update in status_updates %}
+            {% for status_update in data.student_status_updates %}
             <div class="w-100 border rounded-3 bg-white d-flex flex-column gap-3 py-2 shadow-sm" style="min-height: 80px;">
                 <div class="d-flex gap-2 border-bottom px-2 pb-2 shadow-sm">
                     <div class="bg-primary rounded-circle" style="width: 40px; height: 40px;"></div>
                     <div>
-                        <p class="fw-600" style="font-size: 14px">@{{ status_update.teacher_username }}</p>
+                        <p class="fw-600" style="font-size: 14px">@{{ status_update.student_username }}</p>
                         <p style="font-size: 12px">{{ status_update.created_at }}</p>
                     </div>
                 </div>

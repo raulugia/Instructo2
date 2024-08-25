@@ -19,6 +19,16 @@ class Course(models.Model):
         if not self.teacher.is_teacher:
             raise ValidationError("The user must be a teacher to create a course.")
         super().save(*args, **kwargs)
+    
+    def get_closest_future_deadline(self):
+        #get all tests related to the current course where the deadline is greater or equal to the current time
+        upcoming_tests = Test.objects.filter(week__course=self, deadline__gte=timezone.now()).order_by('deadline')
+        #case there are deadlines in the future
+        if upcoming_tests.exists():
+            #return the closest one
+            return upcoming_tests.first().deadline
+        #case no future deadlines - return none
+        return None
 
     def __str__(self):
         return self.title

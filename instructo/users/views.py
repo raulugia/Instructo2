@@ -110,8 +110,8 @@ def home_view(request):
     context = {}
     print("here")
     if request.method == "GET":
+        status_update_form = StatusUpdateForm()
         if request.user.is_teacher:
-            status_update_form = StatusUpdateForm()
             user_status_updates = StatusUpdate.objects.filter(user=request.user).order_by('-created_at')
 
             status_updates_serializer = StatusUpdateSerializer(user_status_updates, many=True)
@@ -142,7 +142,8 @@ def home_view(request):
             })
 
             context = {
-                "data": serializer.data
+                "data": serializer.data,
+                "form": status_update_form,
             }
 
             print(serializer.data)

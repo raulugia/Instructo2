@@ -47,10 +47,10 @@ class StudentHome_CourseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        fields = ["title", "weeks"]
+        fields = ["id","title", "weeks"]
 
 class StudentHome_StatusUpdateSerializer(serializers.ModelSerializer):
-    student_username = serializers.CharField(source="user_username", read_only=True)
+    student_username = serializers.CharField(source="user.username", read_only=True)
     resources = ResourceSerializer(many=True, source="status_update_resource", read_only=True)
     created_at = serializers.DateTimeField(format="%d/%m/%Y at %H:%M")
 
