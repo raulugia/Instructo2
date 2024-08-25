@@ -109,18 +109,19 @@ def register_view(request):
 def home_view(request):
     context = {}
     if request.method == "GET":
-        status_update_form = StatusUpdateForm()
-        user_status_updates = StatusUpdate.objects.filter(user=request.user).order_by('-created_at')
+        if request.user.is_teacher:
+            status_update_form = StatusUpdateForm()
+            user_status_updates = StatusUpdate.objects.filter(user=request.user).order_by('-created_at')
 
-        status_updates_serializer = StatusUpdateSerializer(user_status_updates, many=True)
-        user_courses = Course.objects.filter(teacher=request.user)
-        print(status_updates_serializer.data)
-        context = {
-            "form": status_update_form,
-            "status_updates":  status_updates_serializer.data,
-            "courses": user_courses,
-        }
-        return render(request, "users/home.html", context)
+            status_updates_serializer = StatusUpdateSerializer(user_status_updates, many=True)
+            user_courses = Course.objects.filter(teacher=request.user)
+            print(status_updates_serializer.data)
+            context = {
+                "form": status_update_form,
+                "status_updates":  status_updates_serializer.data,
+                "courses": user_courses,
+            }
+            return render(request, "users/teacher_home.html", context)
 
 
 #view for the search bar 

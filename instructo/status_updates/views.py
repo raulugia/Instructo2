@@ -57,7 +57,7 @@ def create_status_update_view(request):
                     
 
                 except ValidationError as error:
-                    return render(request, "students/home.html", {
+                    return render(request, "students/teacher_home.html", {
                         "form": status_update_form, 
                         "courses": Course.objects.all(), 
                         "status_updates": StatusUpdate.objects.filter(user=user).order_by("-created_at"),
