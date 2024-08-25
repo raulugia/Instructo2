@@ -1,13 +1,13 @@
 {% extends "navbar.html" %}
 
 {% block maincontent %}
-<div class="d-flex min-vh-100 justify-content-center bg-light">
+<div class="d-flex justify-content-between min-vh-100 bg-light">
     <!-- LEFT COL -->
-    <div class="w-25 ps-3" style="margin-top: 100px;">
+    <div class="d-flex flex-column ps-3" style="margin-top: 100px; width: 25%">
         <div class="border rounded-3 px-2 py-2 bg-white shadow-sm" style="margin-top: 50px">
             <h4 class="mb-2">Current Courses</h4>
             <div class="d-flex flex-column">
-                {% for course in data.courses %}
+                {% for course in courses %}
                 <a href="{% url 'my_course_details_view'  course.id %}" class="fw-600">{{ course.title }}</a>
                 {% endfor %}
             </div>
@@ -15,9 +15,9 @@
     </div>
 
     <!-- CENTER COL -->
-    <div class="w-50" style="margin-top: 100px">
-        <h3 class="ms-3 ps-5">Status Updates</h3>
-        <form action="{% url 'status_updates:create_status_update_view' %}" method="post" enctype="multipart/form-data" class="border w-75 mx-auto my-4 rounded-3 px-2 py-1 bg-white shadow-sm">
+    <div class="" style="margin-top: 105px; width: 40%;">
+        <h3>Status Updates</h3>
+        <form action="{% url 'status_updates:create_status_update_view' %}" method="post" enctype="multipart/form-data" class="border w-100 mx-auto my-4 rounded-3 px-2 py-1 bg-white shadow-sm">
             {% csrf_token %}
             <p class="mb-2" style="font-size: 20px">Create a new status update</p>
             
@@ -48,15 +48,24 @@
                 <button type="submit" class="btn btn-primary" style="width: 30%">Post</button>
             </div>
         </form>
-        <div class="w-75 mx-auto rounded-3 mt-2 d-flex flex-column gap-3">
-            {% for status_update in data.student_status_updates %}
-            <div class="w-100 border rounded-3 bg-white d-flex flex-column gap-3 py-2 shadow-sm" style="min-height: 80px;">
-                <div class="d-flex gap-2 border-bottom px-2 pb-2 shadow-sm">
+        <div class="w-100 mx-auto rounded-3 mt-2 d-flex flex-column gap-3">
+            {% for status_update in status_updates %}
+            <div class="w-100 border rounded-3 bg-white d-flex flex-column gap-3 pb-2 shadow-sm" style="min-height: 80px;">
+                <div class="d-flex gap-2 border-bottom px-2 pb-2 shadow-sm pt-2"
+                    {% if status_update.course_id%}
+                        style="background-color: #fadd67;"
+                    {% endif %}
+                >
                     <div class="bg-primary rounded-circle" style="width: 40px; height: 40px;"></div>
                     <div>
-                        <p class="fw-600" style="font-size: 14px">@{{ status_update.student_username }}</p>
+                        <p class="fw-600" style="font-size: 14px">@{{ status_update.username }}</p>
                         <p style="font-size: 12px">{{ status_update.created_at }}</p>
                     </div>
+                    {% if status_update.course_id %}
+                        <div class="ms-auto">
+                            <p class="fs-10 fw-600">Course: <a href="{% url 'my_course_details_view'  status_update.course_id %}">{{ status_update.course_title }}</a></p>
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="d-flex gap-5 align-items-start px-2 mb-2">
                     {% if status_update.resources %}
@@ -97,8 +106,15 @@
     </div>
 
     <!-- RIGHT COL -->
-    <div class="border w-25" style="margin-top: 100px">
-        RIGHT
+    <div class="d-flex flex-column pe-3" style="margin-top: 105px; width: 25%">
+        <div class="border rounded-3 px-2 py-2 bg-white shadow-sm" style="margin-top: 50px">
+            <h4 class="mb-2">Course Deadlines</h4>
+            <div class="d-flex flex-column">
+                {% for course in courses %}
+                <a href="{% url 'my_course_details_view'  course.id  course.closest_future_deadline.week_number %}" class="fw-600">{{ course.title }} - {{ course.closest_future_deadline.deadline }}</a>
+                {% endfor %}
+            </div>
+        </div>
     </div>
 </div>
 {% endblock maincontent %}

@@ -25,8 +25,12 @@ class Course(models.Model):
         upcoming_tests = Test.objects.filter(week__course=self, deadline__gte=timezone.now()).order_by('deadline')
         #case there are deadlines in the future
         if upcoming_tests.exists():
+            closest_test = upcoming_tests.first()
             #return the closest one
-            return upcoming_tests.first().deadline
+            return {
+                "deadline": closest_test.deadline,
+                "week_number": closest_test.week.week_number
+            }
         #case no future deadlines - return none
         return None
 

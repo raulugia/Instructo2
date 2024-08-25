@@ -54,17 +54,21 @@ class StudentHome_CourseSerializer(serializers.ModelSerializer):
         return obj.get_closest_future_deadline()
 
 class StudentHome_StatusUpdateSerializer(serializers.ModelSerializer):
-    student_username = serializers.CharField(source="user.username", read_only=True)
+    username = serializers.CharField(source="user.username", read_only=True)
     resources = ResourceSerializer(many=True, source="status_update_resource", read_only=True)
     created_at = serializers.DateTimeField(format="%d/%m/%Y at %H:%M")
+    course_title = serializers.SerializerMethodField()
 
     class Meta:
         model = StatusUpdate
-        fields = ["student_username", "content", "created_at", "resources"]
+        fields = ["username", "content", "created_at", "resources", "course_id", "course_title"]
+
+    def get_course_title(self, obj):
+        return obj.course.title if obj.course else None
 
 
-class StudentHomeSerializer(serializers.Serializer):
-    student_status_updates = StudentHome_StatusUpdateSerializer(many=True)
-    courses_status_updates = StudentHome_StatusUpdateSerializer(many=True)
-    courses = StudentHome_CourseSerializer(many=True)
+# class StudentHomeSerializer(serializers.Serializer):
+#     student_status_updates = StudentHome_StatusUpdateSerializer(many=True)
+#     courses_status_updates = StudentHome_StatusUpdateSerializer(many=True)
+#     courses = StudentHome_CourseSerializer(many=True)
 
