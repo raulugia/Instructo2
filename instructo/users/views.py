@@ -6,12 +6,12 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from .models import CustomUser
-from courses.models import Course
+from courses.models import Course, Enrollment
 from django.db.models import Q
 from status_updates.models import StatusUpdate
 from status_updates.forms import StatusUpdateForm
 from django.core.exceptions import ValidationError
-from .serializers import StatusUpdateSerializer, ResourceSerializer
+from .serializers import StatusUpdateSerializer, ResourceSerializer, StudentHomeSerializer
 
 #All the code in this file was written without assistance
 
@@ -108,6 +108,7 @@ def register_view(request):
 @login_required
 def home_view(request):
     context = {}
+    print("here")
     if request.method == "GET":
         if request.user.is_teacher:
             status_update_form = StatusUpdateForm()
@@ -122,6 +123,31 @@ def home_view(request):
                 "courses": user_courses,
             }
             return render(request, "users/teacher_home.html", context)
+        
+        elif request.user.is_student:
+            #get the status updates created by the student
+            student_status_updates = StatusUpdate.objects.filter(user=request.user).order_by('-created_at')
+            #get the list of courses ids the student is enrolled in - needed to filter data in the next queries
+            enrolled_courses = Enrollment.objects.filter(student=request.user).values_list("course", flat=True)
+
+            #get the status updates linked to the courses the student is enrolled in
+            courses_status_updates = StatusUpdate.objects.filter(course__in=enrolled_courses).order_by('-created_at')
+            #for every course the student is enrolled in, prefetch the course's weeks and test in every week - needed to display deadlines
+            enrolled_courses_with_weeks = Course.objects.filter(id__in=enrolled_courses).prefetch_related("weeks__tests")
+
+            serializer = StudentHomeSerializer({
+                "student_status_updates": student_status_updates,
+                "courses_status_updates": courses_status_updates,
+                "courses": enrolled_courses_with_weeks
+            })
+
+            context = {
+                "data": serializer.data
+            }
+
+            print(serializer.data)
+
+            return render(request, "users/student_home.html", context)
 
 
 #view for the search bar 

@@ -8,7 +8,6 @@ from .forms import CustomSetPasswordForm
 app_name = "users"
 
 urlpatterns = [
-    #
     path("", views.signIn_view, name="signIn_view"),
     path("register/", views.register_view, name="register_view"),
     path("reset-password/", auth_views.PasswordResetView.as_view(template_name="users/reset_password.html"), name="password_reset"),
