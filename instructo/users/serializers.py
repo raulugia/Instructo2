@@ -44,10 +44,14 @@ class StudentHome_WeekSerializer(serializers.ModelSerializer):
 
 class StudentHome_CourseSerializer(serializers.ModelSerializer):
     weeks = StudentHome_WeekSerializer(many=True, read_only=True)
+    closest_future_deadline = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
-        fields = ["id","title", "weeks"]
+        fields = ["id","title", "weeks", "closest_future_deadline"]
+    
+    def get_closest_future_deadline(self, obj):
+        return obj.get_closest_future_deadline()
 
 class StudentHome_StatusUpdateSerializer(serializers.ModelSerializer):
     student_username = serializers.CharField(source="user.username", read_only=True)
