@@ -11,7 +11,7 @@ from django.db.models import Q
 from status_updates.models import StatusUpdate
 from status_updates.forms import StatusUpdateForm
 from django.core.exceptions import ValidationError
-from .serializers import StatusUpdateSerializer, StudentHome_StatusUpdateSerializer, StudentHome_CourseSerializer
+from .serializers import StatusUpdateSerializer, StudentHome_StatusUpdateSerializer, StudentHome_CourseSerializer, StudentProfileSerializer
 
 #All the code in this file was written without assistance
 
@@ -149,6 +149,35 @@ def home_view(request):
             #print(context)
 
             return render(request, "users/student_home.html", context)
+
+@login_required
+def user_profile_view(request, username):
+    if request.method == "GET":
+        other_user = CustomUser.objects.get(username=username)
+
+        #case the current user is a teacher trying to view a student's profile
+        if request.user.is_teacher and other_user.is_student:
+            #serialize the student's data to ensure only the required user's details are returned to the client
+            student_serializer = StudentProfileSerializer(other_user)
+
+            #get the student's status updates
+            status_updates = StatusUpdate.objects.filter(user=other_user).order_by("-created_at")
+
+            #get all the courses the student is enrolled in
+            student_courses = Course.objects.filter(course_enrollments__student=other_user).distinct()
+
+            #get the courses created by the teacher in which the student is enrolled in
+            teacher_courses = student_courses.filter(teacher=request.user)
+
+            #construct the context with the fetched data
+            context = {
+                "user": student_serializer.data,
+                "status_updates": status_updates,
+                "student_courses": student_courses,
+                "teacher_courses": teacher_courses,
+            }
+
+            return render(request, "users/user_profile.html", context)
 
 
 #view for the search bar 

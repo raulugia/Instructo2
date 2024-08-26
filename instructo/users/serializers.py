@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from courses.models import Resource, Course, Week, Test
 from status_updates.models import StatusUpdate
+from .models import CustomUser
 
 class ResourceSerializer(serializers.ModelSerializer):
     class Meta:
@@ -27,7 +28,6 @@ class StatusUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = StatusUpdate
         fields = ["teacher_username", "content", "created_at", "course", "resources"]
-
 
 
 class StudentHome_TestSerializer(serializers.ModelSerializer):
@@ -65,3 +65,9 @@ class StudentHome_StatusUpdateSerializer(serializers.ModelSerializer):
 
     def get_course_title(self, obj):
         return obj.course.title if obj.course else None
+
+
+class StudentProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ["first_name", "last_name", "username", "city", "country", "profile_picture", "is_teacher", "is_student"]
