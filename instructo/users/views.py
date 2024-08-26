@@ -11,6 +11,7 @@ from django.db.models import Q
 from status_updates.models import StatusUpdate
 from status_updates.forms import StatusUpdateForm
 from django.core.exceptions import ValidationError
+from django.http import HttpResponseForbidden
 from .serializers import StatusUpdateSerializer, StudentHome_StatusUpdateSerializer, StudentHome_CourseSerializer, ProfileSerializer
 
 #All the code in this file was written without assistance
@@ -187,6 +188,11 @@ def user_profile_view(request, username):
             #get the courses created by the teacher
             teacher_courses = Course.objects.filter(teacher=other_user)
 
+            #if the current user is a student, filter the courses to get the ones the current user is enrolled in
+            enrolled_courses = None
+            if request.user.is_student:
+                enrolled_courses = teacher_courses.filter(course_enrollments__student=request.user)
+
             #if the current user is also a teacher, get the students they have in common
             common_students = None
             if request.user.is_teacher:
@@ -202,11 +208,16 @@ def user_profile_view(request, username):
             context = {
                 "user": user_serializer.data,
                 "status_updates": status_updates,
-                "teacher_courses": teacher_courses,
+                "courses": teacher_courses,
                 "common_students": common_students_serializer.data,
+                "enrolled_courses_by_teacher": enrolled_courses,
             }
 
             return render(request, "users/user_profile.html", context)
+    
+    else:
+        #ensure only users who have signed in can see profiles
+        return HttpResponseForbidden("You do not have permission to view this profile.")
 
 
 

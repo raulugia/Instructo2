@@ -27,16 +27,25 @@
         </div>
 
         
+        {% if user.is_student %}
         <div class="border rounded-3 px-2 py-2 bg-white shadow-sm" style="margin-top: 50px">
-            {% if user.is_student %}
             <h4 class="mb-2">Current Courses</h4>
-            {% endif %}
             <div class="d-flex flex-column">
                 {% for course in student_courses %}
                 <a href="{% url 'course_details_view'  course.id %}" class="fw-600">{{ course.title }}</a>
                 {% endfor %}
             </div>
         </div>
+        {% elif user.is_teacher %}
+        <div class="border rounded-3 px-2 py-2 bg-white shadow-sm" style="margin-top: 50px">
+            <h4 class="mb-2">Created Courses</h4>
+            <div class="d-flex flex-column">
+                {% for course in courses %}
+                <a href="{% url 'course_details_view'  course.id %}" class="fw-600">{{ course.title }}</a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <!-- CENTER COL -->
@@ -46,7 +55,7 @@
             {% for status_update in status_updates %}
             <div class="w-100 border rounded-3 bg-white d-flex flex-column gap-3 pb-2 shadow-sm" style="min-height: 80px;">
                 <div class="d-flex gap-2 border-bottom px-2 pb-2 shadow-sm pt-2"
-                    {% if status_update.course_id%}
+                    {% if user.is_teacher %}
                         style="background-color: #fadd67;"
                     {% endif %}
                 >
@@ -55,9 +64,9 @@
                         <p class="fw-600" style="font-size: 14px">@{{ status_update.user.username }}</p>
                         <p style="font-size: 12px">{{ status_update.created_at }}</p>
                     </div>
-                    {% if status_update.course_id %}
+                    {% if status_update.course %}
                         <div class="ms-auto">
-                            <p class="fs-10 fw-600">Course: <a href="{% url 'my_course_details_view'  status_update.course_id %}">{{ status_update.course_title }}</a></p>
+                            <p class="fs-10 fw-600">Course: <a href="{% url 'course_details_view'  status_update.course.id %}">{{ status_update.course.title }}</a></p>
                         </div>
                     {% endif %}
                 </div>
@@ -101,16 +110,49 @@
 
     <!-- RIGHT COL -->
     <div class="d-flex flex-column pe-3" style="margin-top: 105px; width: 25%">
+        {% if user.is_student and request.user.is_teacher %}
         <div class="border rounded-3 px-2 py-2 bg-white shadow-sm" style="margin-top: 50px">
-            {% if user.is_student %}
             <h4 class="mb-2">Enrolled In Your Courses</h4>
-            {% endif %}
             <div class="d-flex flex-column">
                 {% for course in teacher_courses %}
                 <a href="{% url 'course_details_view'  course.id  %}" class="fw-600">{{ course.title }}</a>
                 {% endfor %}
             </div>
         </div>
+        {% elif request.user.is_teacher and user.is_teacher %}
+        <div class="border rounded-3 px-2 py-2 bg-white shadow-sm" style="margin-top: 50px">
+            <h4 class="mb-2">Common Students</h4>
+            <div class="d-flex flex-column">
+                {% for student in common_students %}
+                <a href="{% url 'user_profile_view' student.username %}" class="d-flex justify-content-between">
+                    <p class="fw-600">{{ student.first_name }} {{student.last_name }}</p>
+                    <p>@{{student.username}}</p>
+                </a>
+                {% endfor %}
+            </div>
+            {% if not common_students %}
+            <div class="fs-10 alert alert-info mt-1">
+                <p>You don't have any students in common</p>
+            </div>
+            {% endif %}
+        </div>
+        {% elif request.user.is_student and user.is_teacher %}
+        <div class="border rounded-3 px-2 py-2 bg-white shadow-sm" style="margin-top: 50px">
+            <h4 class="mb-2" style="font-size: 16px">Your Enrolled Courses by @{{ user.username }}</h4>
+            <div class="d-flex flex-column">
+                {% for course in enrolled_courses_by_teacher %}
+                <a href="{% url 'course_details_view' course.id %}" class="d-flex justify-content-between">
+                    {{ course.title }}
+                </a>
+                {% endfor %}
+            </div>
+            {% if not enrolled_courses_by_teacher %}
+            <div class="fs-10 alert alert-info mt-1">
+                <p>You are not enrolled in any courses created by this teacher.</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock maincontent %}
