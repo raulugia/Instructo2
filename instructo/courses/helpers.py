@@ -7,6 +7,9 @@ import tempfile
 from .tasks import create_thumbnail_and_upload, upload_file_to_supabase
 from .supabase_client import delete_from_supabase
 from django.db import transaction
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+from users.models import CustomUser
 
 def create_week(course, week_number, data, files):
     # week = Week.objects.create(course=course, week_number=week_number)
@@ -256,6 +259,27 @@ def process_resource(resource_file, resource_type, course=None, lesson=None, sta
     
     #return the updated resource
     return resource
+
+#method to send a notification to the students enrolled in a certain course when the teacher updates resources
+def notify_enrolled_students_about_resources(course, message):
+    #get the channel layer for the websocket
+    channel_layer = get_channel_layer()
+    #get all the students enrolled in the course
+    enrolled_students = CustomUser.objects.filter(enrollments__course=course, is_student=True)
+
+    #sent the notification to each enrolled student
+    for student in enrolled_students:
+        #create a unique group name
+        group_name = f"{student.username}_notifications"
+        #send the notification to the group
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {
+                "type": "send_notification",
+                "message": message
+            },
+        )
+
 
         
         

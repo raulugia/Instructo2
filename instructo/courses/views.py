@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from .forms import CourseForm, FeedbackForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .helpers import create_week, get_file_format, save_temp_file, process_resource
+from .helpers import create_week, get_file_format, save_temp_file, process_resource, notify_enrolled_students_about_resources
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -253,6 +253,8 @@ def manage_resources_view(request, course_id):
             course.cover_picture = cover_picture_resource
 
             course.save()
+            #notify enrolled students that the cover picture has been updated
+            notify_enrolled_students_about_resources(course, f"The cover picture of '{course.title}' has been updated.")
         
         #handle additional resources updates
         for resource in Resource.objects.filter(course=course, resource_type="additional_resource"):
@@ -260,12 +262,15 @@ def manage_resources_view(request, course_id):
             if updated_resource:
                 print("update additional resource: ", updated_resource)
                 process_resource(updated_resource, "additional_resource", course=course, existing_resource=resource)
+                notify_enrolled_students_about_resources(course, f"An additional resource of the course '{course.title}' has been updated.")
         
         #handle new additional resources
         new_additional_resources = request.FILES.getlist("additional_resources")
         for new_resource_file in new_additional_resources:
             print("more additional resource: ", updated_resource)
             process_resource(new_resource_file, "additional_resource", course=course)
+            #notify enrolled students about the new additional resource
+            notify_enrolled_students_about_resources(course, f"An additional resource has been added to your course '{course.title}'.")
         
         for week in Week.objects.filter(course=course):
             for lesson in week.lessons.all():
@@ -274,8 +279,10 @@ def manage_resources_view(request, course_id):
                     existing_learning_material = lesson.lesson_resources.first()
                     if existing_learning_material:
                         process_resource(updated_material, "learning_material", lesson=lesson, existing_resource=existing_learning_material)
+                        notify_enrolled_students_about_resources(course, f"A learning material in lesson {lesson.lesson_number}-Week {week.week_number} in the course '{course.title}' has been updated.")
                     else:
                         process_resource(updated_material, "learning_material", lesson=lesson)
+                        notify_enrolled_students_about_resources(course, f"A new learning material in lesson {lesson.lesson_number}-Week {week.week_number} in the course '{course.title}' has been added.")
         
         messages.success(request, "Resources updates successfully")
         return redirect("manage_resources_view", course_id=course_id)
