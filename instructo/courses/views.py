@@ -238,7 +238,47 @@ def manage_resources_view(request, course_id):
 
         return render(request, "courses/manage_resources.html", context)
     elif request.method == "POST":
-        pass
+        print("POST CASE")
+        print("files: ", request.FILES)
+        #get course cover picture
+        new_course_cover_picture = request.FILES.get("course_cover_picture")
+        
+        if new_course_cover_picture:
+            print("There is a new cover file", new_course_cover_picture)
+            if course.cover_picture:
+                cover_picture_resource = process_resource(new_course_cover_picture, "course_cover_picture", course=course, existing_resource=course.cover_picture)
+            else:
+                cover_picture_resource = process_resource(new_course_cover_picture, "course_cover_picture", course=course)
+            
+            course.cover_picture = cover_picture_resource
+
+            course.save()
+        
+        #handle additional resources updates
+        for resource in Resource.objects.filter(course=course, resource_type="additional_resource"):
+            updated_resource = request.FILES.get(f"update_additional_resource_{resource.id}")
+            if updated_resource:
+                print("update additional resource: ", updated_resource)
+                process_resource(updated_resource, "additional_resource", course=course, existing_resource=resource)
+        
+        #handle new additional resources
+        new_additional_resources = request.FILES.getlist("additional_resources")
+        for new_resource_file in new_additional_resources:
+            print("more additional resource: ", updated_resource)
+            process_resource(new_resource_file, "additional_resource", course=course)
+        
+        for week in Week.objects.filter(course=course):
+            for lesson in week.lessons.all():
+                updated_material = request.FILES.get(f"week_{week.week_number}_lesson_{lesson.lesson_number}_learning_material")
+                if updated_material:
+                    existing_learning_material = lesson.lesson_resources.first()
+                    if existing_learning_material:
+                        process_resource(updated_material, "learning_material", lesson=lesson, existing_resource=existing_learning_material)
+                    else:
+                        process_resource(updated_material, "learning_material", lesson=lesson)
+        
+        messages.success(request, "Resources updates successfully")
+        return redirect("manage_resources_view", course_id=course_id)
 
 
 @login_required

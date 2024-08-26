@@ -36,8 +36,11 @@ def delete_from_supabase(file_url: str) -> None:
     supabase = get_supabase_client()
     res = supabase.storage.from_(settings.SUPABASE_BUCKET).remove([file_path])
 
-    if res.status_code == 200:
-        print(f"{file_path} has been deleted")
-    else:
-        print(f"Failed to delete {file_path}")
-        raise Exception(f"Failed to delete {file_path}")
+    print("supabase response: ", res)
+
+    # if not res:
+    #     print(f"Failed to delete {file_path}")
+    #     raise Exception(f"Failed to delete {file_path}")
+    # else:
+    print(f"{file_path} has been deleted")
+

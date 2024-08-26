@@ -14,7 +14,7 @@
             {% endfor %}
         {% endif %}
 
-        <form class="form-check w-75 mt-4" action="{% url 'manage_students_view' course.id %}" method="post">
+        <form class="form-check w-75 mt-4" action="{% url 'manage_resources_view' course.id %}" enctype="multipart/form-data" method="post">
             {% csrf_token %}
             <div>
                 <h5>Cover Picture</h5>
@@ -51,7 +51,7 @@
                     <a href="{{ additional_resource.file  }}" target="_blank">{{ additional_resource.title  }}</a>
                     <div class="mt-1">
                         <label for="formFile" class="form-label">Update additional resource</label>
-                        <input name="update_additional_resource" class="form-control" type="file" id="formFile">
+                        <input name="update_additional_resource_{{ additional_resource.id }}" class="form-control" type="file" id="formFile">
                     </div>
                     </div>   
                 {% endfor %}
@@ -102,7 +102,7 @@
             </div>
 
             <div class="d-flex justify-content-end mt-5">
-                <button type="submit" class="btn btn-danger">Remove Students</button>
+                <button type="submit" class="btn btn-danger">Update Resources</button>
             </div>
         </form>
     </div>

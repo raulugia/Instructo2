@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 import os
 import tempfile
 from .tasks import create_thumbnail_and_upload, upload_file_to_supabase
-from .supabase_client import upload_to_supabase
+from .supabase_client import delete_from_supabase
 from django.db import transaction
 
 def create_week(course, week_number, data, files):
@@ -193,24 +193,28 @@ def process_resource(resource_file, resource_type, course=None, lesson=None, sta
     if existing_resource:
         print(f"updating existing resource: {existing_resource.title}")
         #delete existing file from supabase storage
-        delete_resource_from_storage(existing_resource.file)
+        delete_from_supabase(existing_resource.file)
+        print("existing resoruce deleted from supabase")
 
         #case the existing resource is an image with a thumbnail
-        if existing_resource.format == "image" and existing_resource.thumbnail:
+        if existing_resource.resource_format == "image" and existing_resource.thumbnail:
+            print("delete thumbnail")
             #delete the thumbnail from supabase storage
-            delete_resource_from_storage(existing_resource.thumbnail)
+            delete_from_supabase(existing_resource.thumbnail)
 
-        
+        print("update existing_resource")
         #update the resource details
         existing_resource.title = resource_file.name
         existing_resource.resource_format = get_file_format(resource_file)
         existing_resource.save()
+        print("existing resource updated")
 
         #get the temp file full path
         file_path = save_temp_file(resource_file)
 
          #case the file is an image
         if existing_resource.resource_format == "image":
+            print("")
             #create a thumbnail, upload both thumbnail and image by updating existing files in supabase storage
             #use on_commit to ensure Resource is available in the database
             transaction.on_commit(lambda: create_thumbnail_and_upload.delay(file_path, existing_resource.id))
