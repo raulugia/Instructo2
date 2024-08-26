@@ -11,7 +11,7 @@ from django.db.models import Q
 from status_updates.models import StatusUpdate
 from status_updates.forms import StatusUpdateForm
 from django.core.exceptions import ValidationError
-from .serializers import StatusUpdateSerializer, StudentHome_StatusUpdateSerializer, StudentHome_CourseSerializer, StudentProfileSerializer
+from .serializers import StatusUpdateSerializer, StudentHome_StatusUpdateSerializer, StudentHome_CourseSerializer, ProfileSerializer
 
 #All the code in this file was written without assistance
 
@@ -155,10 +155,11 @@ def user_profile_view(request, username):
     if request.method == "GET":
         other_user = CustomUser.objects.get(username=username)
 
+        #serialize the user's data to ensure only the required user's details are returned to the client
+        user_serializer = ProfileSerializer(other_user)
+
         #case the current user is a teacher trying to view a student's profile
         if request.user.is_teacher and other_user.is_student:
-            #serialize the student's data to ensure only the required user's details are returned to the client
-            student_serializer = StudentProfileSerializer(other_user)
 
             #get the student's status updates
             status_updates = StatusUpdate.objects.filter(user=other_user).order_by("-created_at")
@@ -171,13 +172,42 @@ def user_profile_view(request, username):
 
             #construct the context with the fetched data
             context = {
-                "user": student_serializer.data,
+                "user": user_serializer.data,
                 "status_updates": status_updates,
                 "student_courses": student_courses,
                 "teacher_courses": teacher_courses,
             }
 
             return render(request, "users/user_profile.html", context)
+        
+        elif (request.user.is_teacher or request.user.is_student) and other_user.is_teacher:
+            #get the teacher's status updates
+            status_updates = StatusUpdate.objects.filter(user=other_user).order_by("-created_at")
+
+            #get the courses created by the teacher
+            teacher_courses = Course.objects.filter(teacher=other_user)
+
+            #if the current user is also a teacher, get the students they have in common
+            common_students = None
+            if request.user.is_teacher:
+                #get the students enrolled in courses created by both the current user and the other user
+                common_students = CustomUser.objects.filter(
+                    enrollments__course__in=Course.objects.filter(teacher=request.user)
+                ).filter(enrollments__course__in=teacher_courses).distinct()
+            
+            #serialize the common students
+            common_students_serializer = ProfileSerializer(common_students, many=True)
+
+            #construct the context with the fetched data
+            context = {
+                "user": user_serializer.data,
+                "status_updates": status_updates,
+                "teacher_courses": teacher_courses,
+                "common_students": common_students_serializer.data,
+            }
+
+            return render(request, "users/user_profile.html", context)
+
 
 
 #view for the search bar 

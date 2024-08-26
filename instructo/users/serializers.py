@@ -67,7 +67,7 @@ class StudentHome_StatusUpdateSerializer(serializers.ModelSerializer):
         return obj.course.title if obj.course else None
 
 
-class StudentProfileSerializer(serializers.ModelSerializer):
+class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ["first_name", "last_name", "username", "city", "country", "profile_picture", "is_teacher", "is_student"]
