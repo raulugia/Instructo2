@@ -108,7 +108,7 @@ def register_view(request):
 @login_required
 def home_view(request):
     context = {}
-    print("here")
+    #print("here")
     if request.method == "GET":
         status_update_form = StatusUpdateForm()
         if request.user.is_teacher:
@@ -116,7 +116,7 @@ def home_view(request):
 
             status_updates_serializer = StatusUpdateSerializer(user_status_updates, many=True)
             user_courses = Course.objects.filter(teacher=request.user)
-            print(status_updates_serializer.data)
+            #print(status_updates_serializer.data)
             context = {
                 "form": status_update_form,
                 "status_updates":  status_updates_serializer.data,
@@ -125,8 +125,6 @@ def home_view(request):
             return render(request, "users/teacher_home.html", context)
         
         elif request.user.is_student:
-            #get the status updates created by the student
-            #student_status_updates = StatusUpdate.objects.filter(user=request.user).order_by('-created_at')
             #get the list of courses ids the student is enrolled in - needed to filter data in the next queries
             enrolled_courses = Enrollment.objects.filter(student=request.user).values_list("course", flat=True)
 
@@ -136,27 +134,11 @@ def home_view(request):
             ).order_by("-created_at")
 
             combined_status_updates_serializer = StudentHome_StatusUpdateSerializer(combined_status_updates, many=True)
+            #for every course the student is enrolled in, prefetch the course's weeks and test in every week - needed to display deadlines
             enrolled_courses_with_weeks = Course.objects.filter(id__in=enrolled_courses).prefetch_related("weeks__tests")
 
 
             course_serializer = StudentHome_CourseSerializer(enrolled_courses_with_weeks, many=True)
-
-            #get the status updates linked to the courses the student is enrolled in
-            #courses_status_updates = StatusUpdate.objects.filter(course__in=enrolled_courses).order_by('-created_at')
-            #for every course the student is enrolled in, prefetch the course's weeks and test in every week - needed to display deadlines
-            #enrolled_courses_with_weeks = Course.objects.filter(id__in=enrolled_courses).prefetch_related("weeks__tests")
-
-
-            # serializer = StudentHomeSerializer({
-            #     "student_status_updates": student_status_updates,
-            #     "courses_status_updates": courses_status_updates,
-            #     "courses": enrolled_courses_with_weeks
-            # })
-
-            # context = {
-            #     "data": serializer.data,
-            #     "form": status_update_form,
-            # }
 
             context = {
                 "form": status_update_form,
@@ -164,7 +146,7 @@ def home_view(request):
                 "status_updates": combined_status_updates_serializer.data
             }
 
-            print(context)
+            #print(context)
 
             return render(request, "users/student_home.html", context)
 

@@ -65,10 +65,3 @@ class StudentHome_StatusUpdateSerializer(serializers.ModelSerializer):
 
     def get_course_title(self, obj):
         return obj.course.title if obj.course else None
-
-
-# class StudentHomeSerializer(serializers.Serializer):
-#     student_status_updates = StudentHome_StatusUpdateSerializer(many=True)
-#     courses_status_updates = StudentHome_StatusUpdateSerializer(many=True)
-#     courses = StudentHome_CourseSerializer(many=True)
-

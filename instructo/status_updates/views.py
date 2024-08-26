@@ -7,6 +7,9 @@ from .forms import StatusUpdateForm, ResourceForm
 from django.contrib import messages
 from courses.models import Course
 from courses.helpers import process_resource, get_file_format
+from users.models import CustomUser
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 @login_required
 def create_status_update_view(request):
@@ -57,6 +60,10 @@ def create_status_update_view(request):
                         process_resource(status_update_file, "status_update", status_update = status_update)
                     else:
                         print("resorform invalid errors: ", resource_form.errors)
+
+                    
+                if status_update.course:
+                    notify_enrolled_students(status_update.course)
                 
                 return redirect("users:home_view")
                 
@@ -75,3 +82,23 @@ def create_status_update_view(request):
         else:
             messages.error(request, "There was an error creating the status update.")
             return redirect("users:home_view")
+
+#method to send a notification to the students enrolled in a certain course when the teacher posts a status update linked to a course
+def notify_enrolled_students(course):
+    
+    channel_layer = get_channel_layer()
+
+    enrolled_students = CustomUser.objects.filter(enrollments__course=course, is_student=True)
+
+    notification_message = f"There is a new update for your course '{course.title}'"
+
+    for student in enrolled_students:
+        print("student", student)
+        group_name = f"{student.username}_notifications"
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {
+                "type": "send_notification",
+                "message": notification_message
+            },
+        )
