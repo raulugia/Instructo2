@@ -217,75 +217,113 @@ def manage_students_view(request, course_id):
 
         return redirect("manage_students_view", course_id=course_id)
 
+#view to update the resources related to a certain course
 @login_required
 def manage_resources_view(request, course_id):
     try:
+        #case user is a teacher
         if request.user.is_teacher:
+            #get the course created by the user
             course = Course.objects.get(id=course_id, teacher=request.user)
+    #redirect the user if the course does not exist       
     except Course.DoesNotExist:
         messages.error(request, "Course does not exist.")
         return redirect("course_details_view", course_id=course_id)
     
+    #case GET
     if request.method == "GET":
+        #get all the weeks related to the course and prefetch the lessons and their resources
         weeks = Week.objects.filter(course=course).prefetch_related("lessons__lesson_resources")
+        #get all additional resources related to the course
         additional_resources = Resource.objects.filter(course=course, resource_type="additional_resource")
 
+        #construct the context with the fetched data
         context = {
             "course": course,
             "weeks": weeks,
             "additional_resources": additional_resources,
         }
 
+        #render template with context - this template will allow teachers to manage the course resources
         return render(request, "courses/manage_resources.html", context)
+    
+    #case POST
     elif request.method == "POST":
-        print("POST CASE")
-        print("files: ", request.FILES)
-        #get course cover picture
-        new_course_cover_picture = request.FILES.get("course_cover_picture")
-        
-        if new_course_cover_picture:
-            print("There is a new cover file", new_course_cover_picture)
-            if course.cover_picture:
-                cover_picture_resource = process_resource(new_course_cover_picture, "course_cover_picture", course=course, existing_resource=course.cover_picture)
-            else:
-                cover_picture_resource = process_resource(new_course_cover_picture, "course_cover_picture", course=course)
+        #case the user is a teacher
+        if request.user.is_teacher:
+            #get new cover picture submitted by the teacher
+            new_course_cover_picture = request.FILES.get("course_cover_picture")
             
-            course.cover_picture = cover_picture_resource
+            #case there is a new cover picture
+            if new_course_cover_picture:
+                #case there is an existing cover picture
+                if course.cover_picture:
+                    #delete existing cover picture from supabase storage, upload the new one with its thumbnail and update the resource in the database
+                    cover_picture_resource = process_resource(new_course_cover_picture, "course_cover_picture", course=course, existing_resource=course.cover_picture)
+                #case there is no existing cover picture
+                else:
+                    #upload the new one with its thumbnail and save the new resource in the database
+                    cover_picture_resource = process_resource(new_course_cover_picture, "course_cover_picture", course=course)
+                
+                #update the course's cover picture
+                course.cover_picture = cover_picture_resource
+                #save updated course
+                course.save()
 
-            course.save()
-            #notify enrolled students that the cover picture has been updated
-            notify_enrolled_students_about_resources(course, f"The cover picture of '{course.title}' has been updated.")
-        
-        #handle additional resources updates
-        for resource in Resource.objects.filter(course=course, resource_type="additional_resource"):
-            updated_resource = request.FILES.get(f"update_additional_resource_{resource.id}")
-            if updated_resource:
-                print("update additional resource: ", updated_resource)
-                process_resource(updated_resource, "additional_resource", course=course, existing_resource=resource)
-                notify_enrolled_students_about_resources(course, f"An additional resource of the course '{course.title}' has been updated.")
-        
-        #handle new additional resources
-        new_additional_resources = request.FILES.getlist("additional_resources")
-        for new_resource_file in new_additional_resources:
-            print("more additional resource: ", updated_resource)
-            process_resource(new_resource_file, "additional_resource", course=course)
-            #notify enrolled students about the new additional resource
-            notify_enrolled_students_about_resources(course, f"An additional resource has been added to your course '{course.title}'.")
-        
-        for week in Week.objects.filter(course=course):
-            for lesson in week.lessons.all():
-                updated_material = request.FILES.get(f"week_{week.week_number}_lesson_{lesson.lesson_number}_learning_material")
-                if updated_material:
-                    existing_learning_material = lesson.lesson_resources.first()
-                    if existing_learning_material:
-                        process_resource(updated_material, "learning_material", lesson=lesson, existing_resource=existing_learning_material)
-                        notify_enrolled_students_about_resources(course, f"A learning material in lesson {lesson.lesson_number}-Week {week.week_number} in the course '{course.title}' has been updated.")
-                    else:
-                        process_resource(updated_material, "learning_material", lesson=lesson)
-                        notify_enrolled_students_about_resources(course, f"A new learning material in lesson {lesson.lesson_number}-Week {week.week_number} in the course '{course.title}' has been added.")
-        
-        messages.success(request, "Resources updates successfully")
-        return redirect("manage_resources_view", course_id=course_id)
+                #notify enrolled students that the cover picture has been updated
+                notify_enrolled_students_about_resources(course, f"The cover picture of '{course.title}' has been updated.")
+            
+            #handle additional resources updates
+            #loop over the additional resources in the course
+            for resource in Resource.objects.filter(course=course, resource_type="additional_resource"):
+                #get the new additional resource submitted by the teacher
+                updated_resource = request.FILES.get(f"update_additional_resource_{resource.id}")
+
+                #case the teacher submitted a new additional resource to update an existing one
+                if updated_resource:
+                    #delete existing additional resource from supabase storage, upload the new one and update the resource in the database
+                    process_resource(updated_resource, "additional_resource", course=course, existing_resource=resource)
+                    #notify enrolled students that the resource was updated
+                    notify_enrolled_students_about_resources(course, f"An additional resource of the course '{course.title}' has been updated.")
+            
+            #handle new additional resources
+            #get the new additional resources submitted by the teacher
+            new_additional_resources = request.FILES.getlist("additional_resources")
+            #loop over each new additional resource
+            for new_resource_file in new_additional_resources:
+                #upload the new additional resource to supabase storage and save the new resource in the database
+                process_resource(new_resource_file, "additional_resource", course=course)
+                #notify enrolled students about the new additional resource
+                notify_enrolled_students_about_resources(course, f"An additional resource has been added to your course '{course.title}'.")
+            
+            #handle new learning materials
+            #loop over the weeks in the course
+            for week in Week.objects.filter(course=course):
+                #loop over the lessons in every week
+                for lesson in week.lessons.all():
+                    #get the new learning material submitted by the teacher
+                    updated_material = request.FILES.get(f"week_{week.week_number}_lesson_{lesson.lesson_number}_learning_material")
+                    #case the teacher uploaded a new learning material to update the existing one
+                    if updated_material:
+                        #get the existing learning material
+                        existing_learning_material = lesson.lesson_resources.first()
+                        #case there is an existing learning material
+                        if existing_learning_material:
+                            #delete the existing learning material from supabase storage, upload the new one and update the resource in the database
+                            process_resource(updated_material, "learning_material", lesson=lesson, existing_resource=existing_learning_material)
+                            #notify the enrolled students that a learning material has been updated
+                            notify_enrolled_students_about_resources(course, f"A learning material in lesson {lesson.lesson_number}-Week {week.week_number} in the course '{course.title}' has been updated.")
+                        #case there is no existing learning material
+                        else:
+                            #upload the new learning material to supabase and update the resource in the database
+                            process_resource(updated_material, "learning_material", lesson=lesson)
+                            #notify the enrolled students that a new learning material has been added
+                            notify_enrolled_students_about_resources(course, f"A new learning material in lesson {lesson.lesson_number}-Week {week.week_number} in the course '{course.title}' has been added.")
+            
+            #display a success message after the resources have been changed
+            messages.success(request, "Resources updates successfully")
+            #redirect the user back to the manage resources page
+            return redirect("manage_resources_view", course_id=course_id)
 
 
 @login_required
