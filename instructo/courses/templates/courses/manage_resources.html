@@ -13,6 +13,7 @@
                 </div>
             {% endfor %}
         {% endif %}
+
         <form class="form-check w-75 mt-4" action="{% url 'manage_students_view' course.id %}" method="post">
             {% csrf_token %}
             <div>
@@ -22,35 +23,77 @@
                 </div>
                 <div class="my-3">
                     <label for="formFile" class="form-label">New cover picture</label>
-                    <input class="form-control" type="file" id="formFile">
-                  </div>
+                    <input name="course_cover_picture" class="form-control" type="file" id="formFile">
+                </div>
             </div>
+
+            <div class="border-2 w-100 mb-3 mt-4" style="height: 2px; background-color: #b9b9b9;"></div>
 
             <div>
                 <h5>Additional Resources</h5>
-                <p class="" style="font-size: 14px">Please add files that you want to appear under the "Resources" section of trhe course.</p>
+                <p class="mt-2">Existing Resources:</p>
+                <div class="mt-1 mb-3 border px-3 py-2 d-flex flex-column rounded-3 gap-2">
+                {% for additional_resource in additional_resources %}
+                    <div class="px-2 py-2 bg-light rounded-2">
+                    {% if additional_resource.resource_format == "image" %}
+                        {% if additional_resource.thumbnail %}
+                            <div class="bg-secondary rounded-3 overflow-hidden me-5" style="width: 110px; height: 80px;">
+                                <img class="w-100 h-100" src={{ additional_resource.thumbnail }} />
+                            </div>
+                        {% else %}
+                            <div class="bg-secondary rounded-3 overflow-hidden me-5" style="width: 110px; height: 80px;">
+                                <img class="w-100 h-100" src={{ resource.file}} />
+                            </div>
+                        {% endif %}
+                    {% elif additional_resource.resource_format == "pdf" %}
+                        
+                    {% endif %}
+                    <a href="{{ additional_resource.file  }}" target="_blank">{{ additional_resource.title  }}</a>
+                    <div class="mt-1">
+                        <label for="formFile" class="form-label">Update additional resource</label>
+                        <input name="update_additional_resource" class="form-control" type="file" id="formFile">
+                    </div>
+                    </div>   
+                {% endfor %}
+                </div>
+
+                <p class="" style="font-size: 14px">Press "Add File" to add more additional resources to the course.</p>
                 <button type="button" class="btn bordered btn-light border mb-2" onclick="addResourceField()">Add File</button>
                 
-                <div class="border w-100 bg-light overflow-auto" style="height: 200px" id="resource_list">
-                    {% for additional_resource in additional_resources %}
-                    m
-                    {% endfor %}
+                <div class="border w-100 bg-light overflow-auto" style="height: 130px" id="resource_list">
+                    
                 </div>  
             </div>
 
-            <div >
+            <div class="border-2 w-100 mb-3 mt-4" style="height: 2px; background-color: #b9b9b9;"></div>
+
+            <div>
                 <h5>Learning Materials</h5>
-                <div class="border d-flex flex-column">
+                <div class="border d-flex flex-column mt-3">
                     {% for week in weeks %}
-                    <div data-bs-toggle="collapse" data-bs-target="#week_{{ week.week_number}}">
-                        <button class="w-100" type="button">Week {{ week.week_number }}</button>
-                        <div class="collapse" id="week_{{ week.week_number}}">
+                    <div>
+                        <h6 class="w-100 py-2 px-2" style="font-size: 18px; background-color: #e8e8e8;">Week {{ week.week_number }}</h6>
+                        <div class="mt-2 px-2">
                         {% for lesson in week.lessons.all %}
-                            <h6>{{ lesson.title}}</h6>
+                            <p class="fw-600 mb-2">Lesson {{ lesson.lesson_number }}: {{ lesson.title }}</p>
                             {% for resource in lesson.lesson_resources.all %}
-                                {{ resource.file }}
-                                <p>g</p>
+                                {% if resource.resource_format == "image" %}
+                                    {% if resource.thumbnail %}
+                                    <div class="bg-secondary rounded-3 overflow-hidden me-5" style="width: 110px; height: 80px;">
+                                        <img class="w-100 h-100" src={{ resource.thumbnail }} />
+                                    </div>
+                                    {% else %}
+                                    <div class="bg-secondary rounded-3 overflow-hidden me-5" style="width: 110px; height: 80px;">
+                                        <img class="w-100 h-100" src={{ resource.file}} />
+                                    </div>
+                                    {% endif %}
+                                {% endif %}    
+                            <a href="{{ resource.file  }}" target="_blank">{{ resource.title  }}</a>
                             {% endfor %}
+                            <div class="mt-1 mb-3">
+                                <label for="formFile" class="form-label">Update learning material</label>
+                                <input name="week_{{ week.week_number }}_lesson_{{ lesson.lesson_number }}_learning_material" class="form-control" type="file" id="formFile">
+                            </div>
                         {% endfor %}
                         </div>
                     </div>
@@ -58,16 +101,6 @@
                 </div>
             </div>
 
-            {{ course.cover_picture.file }}
-            
-            {% for week in weeks %}
-                {% for lesson in week.lessons.all %}
-                    {{ lesson.title}}
-                    {% for resource in lesson.lesson_resources.all %}
-                        {{ resource.title}}
-                    {% endfor %}
-                {% endfor %}
-            {% endfor %}
             <div class="d-flex justify-content-end mt-5">
                 <button type="submit" class="btn btn-danger">Remove Students</button>
             </div>

@@ -228,7 +228,7 @@ def manage_resources_view(request, course_id):
     
     if request.method == "GET":
         weeks = Week.objects.filter(course=course).prefetch_related("lessons__lesson_resources")
-        additional_resources = Resource.objects.filter(course=course, resource_type="additional_resources")
+        additional_resources = Resource.objects.filter(course=course, resource_type="additional_resource")
 
         context = {
             "course": course,
