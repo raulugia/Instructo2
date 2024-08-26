@@ -81,16 +81,11 @@ def create_thumbnail_and_upload(file_path, resource_id):
         #save the thumbnail
         thumbnail.save(thumbnail_path)
 
-            #img.save(thumbnail_path)
-
         original_file_url = upload_file_to_supabase(file_path, resource.id)
         logger.info("**********************ORIGINAL FILE URL: {}", original_file_url)
         thumbnail_url = upload_file_to_supabase(thumbnail_path, resource.id)
         logger.info("****************THUMBNAIL URL: {}", thumbnail_url)
 
-        # resource.file = original_file_url
-        # resource.thumbnail = thumbnail_url
-        # resource.save()
     except Resource.DoesNotExist:
         logger.error("Resource with id {} does not exist", resource_id)
     except Exception as e:
@@ -103,9 +98,3 @@ def create_thumbnail_and_upload(file_path, resource_id):
                 os.remove(thumbnail_path)
         except Exception as e:
             logger.error("Failed to remove file: {}", str(e))
-        #os.remove(thumbnail_path)
-
-# @shared_task
-# def simple_task(x,y):
-#     logger.info(f"adding {x} and {y}")
-#     return x+y

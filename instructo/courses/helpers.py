@@ -187,8 +187,42 @@ def save_temp_file(resource_file):
     #return the full path to the temp file
     return temp_file_path
 
-def process_resource(resource_file, resource_type, course=None, lesson=None, status_update=None):
+def process_resource(resource_file, resource_type, course=None, lesson=None, status_update=None, existing_resource=None):
     print("processing resource")
+    #case the resource is being updated
+    if existing_resource:
+        print(f"updating existing resource: {existing_resource.title}")
+        #delete existing file from supabase storage
+        delete_resource_from_storage(existing_resource.file)
+
+        #case the existing resource is an image with a thumbnail
+        if existing_resource.format == "image" and existing_resource.thumbnail:
+            #delete the thumbnail from supabase storage
+            delete_resource_from_storage(existing_resource.thumbnail)
+
+        
+        #update the resource details
+        existing_resource.title = resource_file.name
+        existing_resource.resource_format = get_file_format(resource_file)
+        existing_resource.save()
+
+        #get the temp file full path
+        file_path = save_temp_file(resource_file)
+
+         #case the file is an image
+        if existing_resource.resource_format == "image":
+            #create a thumbnail, upload both thumbnail and image by updating existing files in supabase storage
+            #use on_commit to ensure Resource is available in the database
+            transaction.on_commit(lambda: create_thumbnail_and_upload.delay(file_path, existing_resource.id))
+        #case the resource is not an image - no thumbnail needed
+        else:
+            #upload file and update resource with URL
+            #use on_commit to ensure Resource is available in the database
+            transaction.on_commit(lambda: upload_file_to_supabase.delay(file_path, existing_resource.id))
+        
+        return existing_resource
+    
+    #case new resource
     #create a new resource - file/thumbnail fields will be updated once the tasks are completed
     resource = Resource.objects.create(
         lesson= lesson,

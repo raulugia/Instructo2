@@ -28,3 +28,16 @@ def upload_to_supabase(file_path: str, file_name: str) -> str:
         raise Exception(f"Failed to get the file URL for the uploaded file")
     
     return public_url_res
+
+def delete_from_supabase(file_url: str) -> None:
+    file_path = file_url.split("/")[-1].split("?")[0]
+    print("file name: ", file_path)
+
+    supabase = get_supabase_client()
+    res = supabase.storage.from_(settings.SUPABASE_BUCKET).remove([file_path])
+
+    if res.status_code == 200:
+        print(f"{file_path} has been deleted")
+    else:
+        print(f"Failed to delete {file_path}")
+        raise Exception(f"Failed to delete {file_path}")
