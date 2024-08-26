@@ -31,7 +31,7 @@ def create_week(course, week_number, data, files):
         number_of_lessons = len(lesson_keys)
         print("number of lessons: ", number_of_lessons)
         for j in range(1, number_of_lessons + 1):
-            lesson = create_lesson(week, week_number, j, data, files)
+            lesson = create_lesson(week, week_number, j, data, files, course)
         #create_resources(week, files.get(f"learning_material_week_{week_number}"))
         create_test(week, data)
         return week
@@ -40,7 +40,7 @@ def create_week(course, week_number, data, files):
         raise ValidationError(week_form.errors)
 
 
-def create_lesson(week, week_number, lesson_number, data, files):
+def create_lesson(week, week_number, lesson_number, data, files, course):
     print("creating lesson...")
     lesson_title = data.get(f"week_{week_number}_lesson_{lesson_number}_title")
     print("lesson title", lesson_title)
@@ -60,7 +60,7 @@ def create_lesson(week, week_number, lesson_number, data, files):
         learning_material = files.get(f"week_{week_number}_lesson_{lesson_number}_learning_material")
         if learning_material:
             print("there is learning material")
-            process_resource(learning_material, "learning_material", lesson=lesson, week=week)
+            process_resource(learning_material, "learning_material", lesson=lesson, course=course)
         
         return lesson
     else:
@@ -192,6 +192,7 @@ def process_resource(resource_file, resource_type, course=None, lesson=None, sta
     #create a new resource - file/thumbnail fields will be updated once the tasks are completed
     resource = Resource.objects.create(
         lesson= lesson,
+        course= course,
         status_update = status_update,
         title = resource_file.name,
         resource_format = get_file_format(resource_file),

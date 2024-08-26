@@ -1,3 +1,4 @@
+#imports
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
@@ -10,6 +11,8 @@ from courses.helpers import process_resource, get_file_format
 from users.models import CustomUser
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+
+#All the code in this file was written without assistance
 
 #view to create a new status update
 @login_required

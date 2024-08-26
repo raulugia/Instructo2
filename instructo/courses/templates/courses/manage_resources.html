@@ -1,0 +1,88 @@
+{% extends "navbar.html" %}
+{% load custom_filters %}
+
+{% block maincontent %}
+<div class="d-flex flex-column min-vh-100 justify-content-start align-items-start bg-light pt-5 px-5">
+    <div class="px-4 me-4 py-4 w-100 bg-white d-flex flex-column gap-2 ps-5 border border-2 rounded-3" style="margin-top: 20px; min-height: 500px">
+        <h1 class="mt-3 fs-4 mb-2">Manage Students for : {{ course.title }}</h1>
+        <p class="mb-3">Select the students you want to remove from the course and press the remove button</p>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if 'error' in message.tags %}alert-danger{% else %}alert-success{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        <form class="form-check w-75 mt-4" action="{% url 'manage_students_view' course.id %}" method="post">
+            {% csrf_token %}
+            <div>
+                <h5>Cover Picture</h5>
+                <div class="bg-secondary rounded-3 overflow-hidden me-5 mt-3" style="width: 110px; height: 80px;">
+                    <img class="w-100 h-100" src={{ course.cover_picture.thumbnail }} />
+                </div>
+                <div class="my-3">
+                    <label for="formFile" class="form-label">New cover picture</label>
+                    <input class="form-control" type="file" id="formFile">
+                  </div>
+            </div>
+
+            <div>
+                <h5>Additional Resources</h5>
+                <p class="" style="font-size: 14px">Please add files that you want to appear under the "Resources" section of trhe course.</p>
+                <button type="button" class="btn bordered btn-light border mb-2" onclick="addResourceField()">Add File</button>
+                
+                <div class="border w-100 bg-light overflow-auto" style="height: 200px" id="resource_list">
+                    {% for additional_resource in additional_resources %}
+                    m
+                    {% endfor %}
+                </div>  
+            </div>
+
+            <div >
+                <h5>Learning Materials</h5>
+                <div class="border d-flex flex-column">
+                    {% for week in weeks %}
+                    <div data-bs-toggle="collapse" data-bs-target="#week_{{ week.week_number}}">
+                        <button class="w-100" type="button">Week {{ week.week_number }}</button>
+                        <div class="collapse" id="week_{{ week.week_number}}">
+                        {% for lesson in week.lessons.all %}
+                            <h6>{{ lesson.title}}</h6>
+                            {% for resource in lesson.lesson_resources.all %}
+                                {{ resource.file }}
+                                <p>g</p>
+                            {% endfor %}
+                        {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {{ course.cover_picture.file }}
+            
+            {% for week in weeks %}
+                {% for lesson in week.lessons.all %}
+                    {{ lesson.title}}
+                    {% for resource in lesson.lesson_resources.all %}
+                        {{ resource.title}}
+                    {% endfor %}
+                {% endfor %}
+            {% endfor %}
+            <div class="d-flex justify-content-end mt-5">
+                <button type="submit" class="btn btn-danger">Remove Students</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    function addResourceField() {
+        const resourceList = document.getElementById("resource_list")
+        const fileInput = document.createElement("input")
+
+        fileInput.type = "file"
+        fileInput.name = "additional_resources"
+        fileInput.className = "form-control form-control-sm mt-2"
+        resourceList.appendChild(fileInput)
+    }
+</script>
+{% endblock maincontent %}

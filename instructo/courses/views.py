@@ -16,6 +16,8 @@ from users.models import CustomUser
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
+#All the code in this file was written without assistance
+
 @login_required
 def create_course_view(request):
     if request.method == "GET":
@@ -214,6 +216,30 @@ def manage_students_view(request, course_id):
                     )
 
         return redirect("manage_students_view", course_id=course_id)
+
+@login_required
+def manage_resources_view(request, course_id):
+    try:
+        if request.user.is_teacher:
+            course = Course.objects.get(id=course_id, teacher=request.user)
+    except Course.DoesNotExist:
+        messages.error(request, "Course does not exist.")
+        return redirect("course_details_view", course_id=course_id)
+    
+    if request.method == "GET":
+        weeks = Week.objects.filter(course=course).prefetch_related("lessons__lesson_resources")
+        additional_resources = Resource.objects.filter(course=course, resource_type="additional_resources")
+
+        context = {
+            "course": course,
+            "weeks": weeks,
+            "additional_resources": additional_resources,
+        }
+
+        return render(request, "courses/manage_resources.html", context)
+    elif request.method == "POST":
+        pass
+
 
 @login_required
 def my_course_details_view(request, course_id, week_number=None):
