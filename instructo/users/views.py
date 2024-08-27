@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from .forms import RegistrationForm
 from django.contrib import messages
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from .models import CustomUser
 from courses.models import Course, Enrollment
@@ -47,6 +47,14 @@ def signIn_view(request):
 
     #case request method is not GET or POST - return bad request
     return JsonResponse({"error": "Bad Request"}, status=400)
+
+@login_required
+def logout_view(request):
+    #log the user out
+    logout(request)
+
+    #redirect the user to the sign in page
+    return redirect("users:signIn_view")
 
 #view to register new users
 def register_view(request):
