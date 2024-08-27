@@ -20,6 +20,7 @@ class Course(models.Model):
             raise ValidationError("The user must be a teacher to create a course.")
         super().save(*args, **kwargs)
     
+    #method to get the nearest deadline in the future - used in students home page
     def get_closest_future_deadline(self):
         #get all tests related to the current course where the deadline is greater or equal to the current time
         upcoming_tests = Test.objects.filter(week__course=self, deadline__gte=timezone.now()).order_by('deadline')
@@ -33,6 +34,11 @@ class Course(models.Model):
             }
         #case no future deadlines - return none
         return None
+    
+    #method to get the total number of students in a course:
+    def get_student_count(self):
+        #return the number of students enrolled in the course
+        return self.course_enrollments.count()
 
     def __str__(self):
         return self.title
