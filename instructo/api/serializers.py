@@ -347,8 +347,9 @@ class Post_CourseSerializer(serializers.ModelSerializer):
         #get the number of weeks
         number_of_weeks = len(value)
 
+
         #case the number of weeks and duration_weeks do not match
-        if number_of_weeks != self.initial_data.get("duration_weeks", None):
+        if number_of_weeks != self.initial_data.get("duration_weeks"):
             raise serializers.ValidationError("The total number of weeks in the course and 'duration_weeks' must be the same.")
         
         #iterate over every week
@@ -383,11 +384,11 @@ class Post_CourseSerializer(serializers.ModelSerializer):
         for additional_resource in value:
 
             #case the format is not allowed
-            if value["resource_format"] not in allowed_formats:
+            if additional_resource["resource_format"] not in allowed_formats:
                 raise serializers.ValidationError("Additional resources format not allowed.")
             
             #case the resource type is not additional_resource
-            if value["resource_type"] != "additional_resource":
+            if additional_resource["resource_type"] != "additional_resource":
                 raise serializers.ValidationError("Additional resources can only be of type 'additional_resource'.")
             
         #return validated additional resources
