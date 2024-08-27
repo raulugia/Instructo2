@@ -55,7 +55,8 @@ INSTALLED_APPS = [
     "users",
     "courses",
     "chat",
-    "status_updates"
+    "status_updates",
+    "api"
 ]
 
 MIDDLEWARE = [
