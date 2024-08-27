@@ -5,6 +5,8 @@ from django.db.models import Count
 from chat.models import Message
 from django.utils import timezone
 
+#All the code in this file was written without assistance
+
 class CourseDetailsSerializer(serializers.ModelSerializer):
     student_count = serializers.SerializerMethodField()
 

@@ -7,18 +7,24 @@ from courses.models import Course
 from chat.models import Message
 from .serializers import *
 
+#All the code in this file was written without assistance
 
+#view to get own details
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_own_user_details_view(request):
-    #
-    # if request.user.username != username:
-    #     return Response({"error": "You are not authorized to access this data."}, status = status.HTTP_403_FORBIDDEN)
+    #case the user is a teacher
     if request.user.is_teacher:
+        #serialize the teacher's details
         user_serializer = CustomUserTeacherSerializer(request.user)
+        #return the serialized data 
         return Response(user_serializer.data)
+    
+    #case the user is a student
     elif request.user.is_student:
+        #serialize the student's details
         user_serializer = CustomUserStudentSerializer(request.user)
+        #return the serialized data 
         return Response(user_serializer.data)
 
 
@@ -154,14 +160,19 @@ def update_course_title_description(request, course_id):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_course(request):
+    #case the user is not a teacher
     if not request.user.is_teacher:
         return Response ({"error": "You do not have permission to perform this action."}, status=403)
     
+    #initialize the serializer with the request data
     serializer = Post_CourseSerializer(data=request.data)
 
+    #case serializer is valid
     if serializer.is_valid():
+        #save the course data with the authenticated user as the teacher
         serializer.save(teacher=request.user)
-
+        ##return the course details
         return Response(serializer.data, status=200)
     
+    #case the data was not valid
     return Response(serializer.errors, status=400)

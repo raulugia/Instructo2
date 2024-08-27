@@ -4,6 +4,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.utils.functional import lazy
+
 #All the code in this file was written without assistance
 
 #this model represents the courses created by teachers
