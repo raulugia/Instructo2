@@ -148,3 +148,20 @@ def update_course_title_description(request, course_id):
     
     except Course.DoesNotExist:
         return Response({"error": "The course does not exist."}, status=404)
+
+
+#view to create a course
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_course(request):
+    if not request.user.is_teacher:
+        return Response ({"error": "You do not have permission to perform this action."}, status=403)
+    
+    serializer = Post_CourseSerializer(data=request.data)
+
+    if serializer.is_valid():
+        serializer.save(teacher=request.user)
+
+        return Response(serializer.data, status=200)
+    
+    return Response(serializer.errors, status=400)
