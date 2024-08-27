@@ -77,7 +77,25 @@ def get_enrolled_students_view(request, course_id):
     
     except Course.DoesNotExist:
         return Response({"error": "The course does not exist."}, status=404)
+    
+#view to get all the course details
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_course_details(request, course_id):
+    try:
+        #get the course using the provided course_id
+        course = Course.objects.prefetch_related("weeks__lessons", "weeks__tests").get(id=course_id)
 
+        #serialize the course details
+        serializer = CourseAllDetailsSerializer(course)
+
+        #return the serialized course
+        return Response(serializer.data, status=200)
+    
+    except Course.DoesNotExist:
+        return Response({"error": "The course does not exist."}, status=404)
+
+#view to get the chat messages of a course
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_course_chat_history(request, course_id):
@@ -99,6 +117,34 @@ def get_course_chat_history(request, course_id):
         #case user is not the course teacher or an enrolled student
         else:
             return Response({"error": "You must be enrolled in the course to access this data."}, status=403)
+    
+    except Course.DoesNotExist:
+        return Response({"error": "The course does not exist."}, status=404)
+
+#view to update a courses's title/description
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def update_course_title_description(request, course_id):
+    try:
+        #get the course using the provided course_id
+        course = Course.objects.get(id=course_id)
+
+        #case the user is not the course's teacher
+        if request.user != course.teacher:
+            return Response ({"error": "You do not have permission to perform this action."}, status=403)
+        
+        serializer = CourseUpdateTitleDescSerializer(course, data=request.data, partial=True)
+
+        #case data was successfully validated
+        if serializer.is_valid():
+            #save the updated course data
+            serializer.save()
+
+            #return the data
+            return Response(serializer.data, status=200)
+        
+        #case data was not successfully serialized
+        return Response(serializer.errors, status=400)
     
     except Course.DoesNotExist:
         return Response({"error": "The course does not exist."}, status=404)

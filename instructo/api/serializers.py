@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from users.models import CustomUser
-from courses.models import Course
+from courses.models import Course, Week, Lesson, Test
 from django.db.models import Count
 from chat.models import Message
 
@@ -69,6 +69,7 @@ class CustomUserStudentSerializer(serializers.ModelSerializer):
         return []
     
 class CommonStudentsSerializer(serializers.ModelSerializer):
+
     enrolled_courses = serializers.SerializerMethodField()
 
     class Meta:
@@ -87,9 +88,74 @@ class EnrolledStudentsSerializer(serializers.ModelSerializer):
         fields = ["first_name", "last_name", "username"]
 
 class MessageSerializer(serializers.ModelSerializer):
+    #get the username of the sender
     sender_username = serializers.CharField(source="sender.username", read_only=True)
+    #format the timestamp
     timestamp = serializers.DateTimeField(format="%d/%m/%Y %H:%M",read_only=True)
 
     class Meta:
         model = Message
         fields = ["id","sender_username", "content", "timestamp"]
+
+
+class LessonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lesson
+        fields = ["lesson_number", "title", "description"]
+
+class TestSerializer(serializers.ModelSerializer):
+    deadline = serializers.DateField(format="%d/%m/%Y")
+
+    class Meta:
+        model = Test
+        fields = ["title", "description", "deadline"]
+
+class WeekSerializer(serializers.ModelSerializer):
+    lessons = LessonSerializer(many=True)
+    tests = TestSerializer(many=True)
+
+    class Meta:
+        model = Week
+        fields = ["week_number", "lessons", "tests"]
+
+class CourseAllDetailsSerializer(serializers.ModelSerializer):
+    weeks = WeekSerializer(many=True)
+    cover_picture = serializers.URLField(source="cover_picture.file", required=True)
+
+    class Meta:
+        model = Course
+        fields = ["id", "title", "description","cover_picture", "duration_weeks", "weeks"]
+
+
+
+class CourseUpdateTitleDescSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = ["title", "description"]
+    
+    def validate_title(self, value):
+        if value is not None:
+            if not value.strip():
+                raise serializers.ValidationError("Title cannot be empty.")
+            if len(value) > 100:
+                raise serializers.ValidationError("Title cannot be more than 100 characters.")
+            return value.capitalize()
+        return value
+    
+    def validate_description(self, value):
+        if value is not None:
+            if not value.strip():
+                raise serializers.ValidationError("Title cannot be empty.")
+            return value.capitalize()
+        return value
+    
+    def update(self, instance, validated_data):
+        #update the title if provided
+        if "title" in validated_data:
+            instance.title = validated_data.get("title", instance.title)
+        #update the description if provided
+        if "description" in validated_data:
+            instance.description = validated_data.get("description", instance.description)
+        
+        instance.save()
+        return instance
