@@ -15,7 +15,7 @@ import os
 from users.models import CustomUser
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-from django.http import HttpResponseBadRequest, HttpResponseNotFound
+from django.http import HttpResponseBadRequest
 
 #All the code in this file was written without assistance
 

@@ -3,6 +3,8 @@ from . import views
 from django.contrib.auth.decorators import login_required
 from chat.views import group_chat_view
 
+#All the code in this file was written without assistance
+
 urlpatterns = [
     path("create-course/", login_required(views.create_course_view, login_url="users:signIn_view"), name="create_course_view"),
     path("course/<int:course_id>/", login_required(views.course_details_view, login_url="users:signIn_view"), name="course_details_view"),
