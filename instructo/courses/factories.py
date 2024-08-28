@@ -3,6 +3,8 @@ from django.utils import timezone
 from .models import Course, Week, Lesson, Test, Question, Answer, Resource, Enrollment, Feedback
 from users.factories import CustomUserFactory
 
+#All the code in this file was written without assistance
+
 class ResourceFactory(factory.django.DjangoModelFactory):
     title = factory.Faker("sentence", nb_words=4)
     file = factory.Faker("url")
