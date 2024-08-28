@@ -179,8 +179,8 @@ class Post_AnswerSerializer(serializers.ModelSerializer):
         #case the answer is empty
         if not value.strip():
             raise serializers.ValidationError("Answer text cannot be empty")
-        #returned the answer text making sure the first letter is capitalized
-        return value.capitalize()
+        #returned the answer text
+        return value
 
 
 class Post_QuestionSerializer(serializers.ModelSerializer):
@@ -194,8 +194,8 @@ class Post_QuestionSerializer(serializers.ModelSerializer):
         #case the question is empty
         if not value.strip():
             raise serializers.ValidationError("Question text cannot be empty")
-        #returned the question text making sure the first letter is capitalized
-        return value.capitalize()
+        #returned the question text
+        return value
     
     #ensure each question has between 2 and 4 answers and at least one answer is correct
     def validate_answers(self, value):
@@ -228,16 +228,16 @@ class Post_TestSerializer(serializers.ModelSerializer):
         #case the title is empty
         if not value.strip():
             raise serializers.ValidationError("Test title cannot be empty.")
-        #returned the question text making sure the first letter is capitalized
-        return value.capitalize()
+        #returned the question text
+        return value
     
     #ensure the test description is not empty
     def validate_description(self, value):
         #case the description is empty
         if not value.strip():
             raise serializers.ValidationError("Test description cannot be empty.")
-        #returned the test description making sure the first letter is capitalized
-        return value.capitalize()
+        #returned the test description
+        return value
 
     #ensure the deadline is set in the future
     def validate_deadline(self, value):
@@ -267,16 +267,16 @@ class Post_LessonSerializer(serializers.ModelSerializer):
         #case the title is empty
         if not value.strip():
             raise serializers.ValidationError("Lesson title cannot be empty.")
-        #returned the lesson text making sure the first letter is capitalized
-        return value.capitalize()
+        #returned the lesson text
+        return value
     
     #ensure the lesson description is not empty
     def validate_description(self, value):
         #case the description is empty
         if not value.strip():
             raise serializers.ValidationError("Lesson description cannot be empty.")
-        #returned the lesson description making sure the first letter is capitalized
-        return value.capitalize()
+        #returned the lesson description
+        return value
     
     #ensure that the resource is of the correct type and format
     def validate_lesson_resources(self, value):
@@ -298,8 +298,8 @@ class Post_LessonSerializer(serializers.ModelSerializer):
 
 
 class Post_WeekSerializer(serializers.ModelSerializer):
-    lessons = LessonSerializer(many=True)
-    tests = TestSerializer(many=True)
+    lessons = Post_LessonSerializer(many=True)
+    tests = Post_TestSerializer(many=True)
 
     class Meta:
         model = Week
@@ -319,7 +319,7 @@ class Post_WeekSerializer(serializers.ModelSerializer):
         return value
 
 class Post_CourseSerializer(serializers.ModelSerializer):
-    weeks = WeekSerializer(many=True)
+    weeks = Post_WeekSerializer(many=True)
     cover_picture = Post_ResourceSerializer(required=False)
     additional_resources = Post_ResourceSerializer(many=True, required=False)
 
@@ -332,16 +332,16 @@ class Post_CourseSerializer(serializers.ModelSerializer):
         #case the title is empty
         if not value.strip():
             raise serializers.ValidationError("Course title cannot be empty.")
-        #returned the course title making sure the first letter is capitalized
-        return value.capitalize()
+        #returned the course title
+        return value
     
     #ensure the course description is not empty
     def validate_description(self, value):
         #case the description is empty
         if not value.strip():
             raise serializers.ValidationError("Course description cannot be empty.")
-        #returned the course description making sure the first letter is capitalized
-        return value.capitalize()
+        #returned the course description
+        return value
     
     #ensure that the number of weeks matches duration_weeks
     #ensure the week_number of every week is not greater than the total number of weeks
@@ -398,6 +398,7 @@ class Post_CourseSerializer(serializers.ModelSerializer):
 
     #override the create method
     def create(self, validated_data):
+        print("validated data in create method: ", validated_data)
         #extract the weeks data from the validated data
         weeks_data = validated_data.pop('weeks')
         #extract the course cover picture data or set it to None
