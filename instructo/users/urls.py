@@ -1,10 +1,13 @@
-#All the code in this file was written without assistance
+#imports
 from django.urls import path
 from . import views
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from .forms import CustomSetPasswordForm
 
+#All the code in this file was written without assistance
+
+#namespace users urls
 app_name = "users"
 
 urlpatterns = [

@@ -299,5 +299,7 @@ def searchBar_view(request):
             "courses": courses,
         }
 
+        print(context)
+
     #render the search results page with the context
     return render(request, "users/search_results.html", context)
