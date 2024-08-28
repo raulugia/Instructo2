@@ -1,16 +1,23 @@
 {% extends "navbar.html" %}
 
 {% block maincontent %}
-<div class="d-flex min-vh-100 justify-content-center bg-light">
+<div  class="d-flex justify-content-between min-vh-100 bg-light">
     <!-- LEFT COL -->
-    <div class="border w-25 " style="margin-top: 100px">
-        LEFT
+    <div class="d-flex flex-column ps-3" style="margin-top: 100px; width: 25%">
+        <div class="border rounded-3 px-2 py-2 bg-white shadow-sm" style="margin-top: 50px">
+            <h4 class="mb-2">Your Courses</h4>
+            <div class="d-flex flex-column">
+                {% for course in courses %}
+                <a href="{% url 'my_course_details_view'  course.id %}" class="fw-600">{{ course.title }}</a>
+                {% endfor %}
+            </div>
+        </div>
     </div>
 
     <!-- CENTER COL -->
-    <div class="w-50" style="margin-top: 100px">
+    <div style="margin-top: 105px; width: 40%;">
         <h3>Status Updates</h3>
-        <form action="{% url 'status_updates:create_status_update_view' %}" method="post" enctype="multipart/form-data" class="border w-75 mx-auto my-4 rounded-3 px-2 py-1 bg-white shadow-sm">
+        <form action="{% url 'status_updates:create_status_update_view' %}" method="post" enctype="multipart/form-data" class="border w-100 mx-auto my-4 rounded-3 px-2 py-1 bg-white shadow-sm">
             {% csrf_token %}
             <p class="mb-2" style="font-size: 20px">Create a new status update</p>
             
@@ -52,7 +59,7 @@
                 <button type="submit" class="btn btn-primary" style="width: 30%">Post</button>
             </div>
         </form>
-        <div class="w-75 mx-auto rounded-3 mt-2 d-flex flex-column gap-3">
+        <div class="w-100 mx-auto rounded-3 mt-2 d-flex flex-column gap-3">
             {% for status_update in status_updates %}
             <div class="w-100 border rounded-3 bg-white d-flex flex-column gap-3 py-2 shadow-sm" style="min-height: 80px;">
                 <div class="d-flex gap-2 border-bottom px-2 pb-2 shadow-sm">
@@ -101,7 +108,7 @@
     </div>
 
     <!-- RIGHT COL -->
-    <div class="border w-25" style="margin-top: 100px">
+    <div class="d-flex flex-column pe-3" style="margin-top: 105px; width: 25%">
         RIGHT
     </div>
 </div>

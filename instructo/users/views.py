@@ -13,6 +13,8 @@ from status_updates.forms import StatusUpdateForm
 from django.core.exceptions import ValidationError
 from django.http import HttpResponseForbidden
 from .serializers import StatusUpdateSerializer, StudentHome_StatusUpdateSerializer, StudentHome_CourseSerializer, ProfileSerializer
+from courses.helpers import process_resource
+from django.db.models import Count
 
 #All the code in this file was written without assistance
 
@@ -77,6 +79,13 @@ def register_view(request):
 
         #case for is valid
         if(registration_form.is_valid()):
+            profile_picture = request.FILES.get("profile_picture")
+
+            #case there is a profile picture:
+            if profile_picture:
+                #create the resource, create a thumbnail and upload both to supabase storage
+                profile_picture_resource = process_resource(profile_picture, "user_profile_picture")
+
             #create a new user - do not save
             new_user = registration_form.save(commit=False)
             print(f"password before hashing: {registration_form.cleaned_data['password1']}")
@@ -96,6 +105,8 @@ def register_view(request):
             elif account_type == "student":
                 new_user.is_teacher = False
                 new_user.is_student = True
+            
+            new_user.profile_picture = profile_picture_resource
 
             #save the new user to the database
             new_user.save()
@@ -114,25 +125,41 @@ def register_view(request):
     #case request method is not GET or POST - return bad request
     return JsonResponse({"error": "Bad Request"}, status=400)
 
+#view to render the home page for both teachers and students
 @login_required
 def home_view(request):
     context = {}
-    #print("here")
+    #case GET request method
     if request.method == "GET":
         status_update_form = StatusUpdateForm()
+
+        #case the user is a student
         if request.user.is_teacher:
+            #get the teacher's status updates ordered by created at
             user_status_updates = StatusUpdate.objects.filter(user=request.user).order_by('-created_at')
 
+            #serialize the status updates
             status_updates_serializer = StatusUpdateSerializer(user_status_updates, many=True)
+
+            #get all the courses created by the teacher
             user_courses = Course.objects.filter(teacher=request.user)
-            #print(status_updates_serializer.data)
+            #annotate each course with the student count
+            user_courses = user_courses.annotate(student_count= Count("course_enrollments"))
+            #get the top 3 courses based on student count
+            top_3_courses = user_courses.order_by("-student_count")[:3]
+            
+            #construct the context
             context = {
                 "form": status_update_form,
                 "status_updates":  status_updates_serializer.data,
                 "courses": user_courses,
+                "top_3_courses": top_3_courses
             }
+
+            #render the template with the context
             return render(request, "users/teacher_home.html", context)
         
+        #case user is a student
         elif request.user.is_student:
             #get the list of courses ids the student is enrolled in - needed to filter data in the next queries
             enrolled_courses = Enrollment.objects.filter(student=request.user).values_list("course", flat=True)

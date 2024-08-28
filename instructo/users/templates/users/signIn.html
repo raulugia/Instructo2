@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container vh-100 d-flex justify-content-center align-items-center bg-light">
-    <div class="border container px-0 d-flex justify-content-between rounded-20 overflow-hidden shadow">
+    <div class="border container px-0 d-flex justify-content-between rounded-20 overflow-hidden shadow w-50">
         <form method="post" class="w-100 bg-white px-5 py-4">
             {% csrf_token %}
             <div class="d-flex flex-column justify-content-between w-100">
@@ -43,10 +43,6 @@
                 <p class="fs-10 ml-auto">Don't have an account? <a href="{% url 'users:register_view' %}" class="text-primary">Sign up</a></p>
             </div>
         </form>
-
-        <div class="container">
-            <h1 class="fs-2">right side</h1>
-        </div>
     </div>
 </div>
 {% endblock %}
