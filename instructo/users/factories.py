@@ -1,9 +1,20 @@
 import factory
 from django.contrib.auth.hashers import make_password
 from .models import CustomUser
-from courses.factories import ResourceFactory
+from courses.models import Resource
 
 #All the code in this file was written without assistance
+
+#create custom resource factory here to avoid circular imports
+class ResourceProfilePictureFactory(factory.django.DjangoModelFactory):
+    title = factory.Faker("sentence", nb_words=4)
+    file = factory.Faker("url")
+    thumbnail = factory.Faker("url")
+    resource_format = "image"
+    resource_type = "user_profile_picture"
+
+    class Meta:
+        model = Resource
 
 class CustomUserFactory(factory.django.DjangoModelFactory):
     class Meta:
@@ -22,7 +33,7 @@ class CustomUserFactory(factory.django.DjangoModelFactory):
     country = factory.Faker("country")
 
     #create a profile picture using the Resource factory model from app courses
-    profile_picture = factory.SubFactory(ResourceFactory, resource_type="user_profile_picture", resource_format="image")
+    profile_picture = factory.SubFactory(ResourceProfilePictureFactory)
 
     #set default to user is teacher
     is_student = False

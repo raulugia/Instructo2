@@ -2,6 +2,9 @@ from django.test import TestCase
 from .factories import CustomUserFactory
 from django.urls import reverse
 from .models import CustomUser
+from status_updates.factories import StatusUpdateFactory
+from .serializers import StatusUpdateSerializer
+from courses.factories import CourseFactory
 
 #All the code in this file was written without assistance
 
@@ -121,3 +124,35 @@ class RegisterViewTest(TestCase):
 
         #ensure the user does not exist in the database
         self.assertFalse(CustomUser.objects.filter(email="mike@instructo.com").exists())
+
+
+class HomeViewTestCase(TestCase):
+
+    #test method to verify the home view works properly
+    def test_home_view(self):
+        #create a new user, in this case, a teacher
+        teacher = CustomUserFactory(is_teacher=True, is_student=False)
+
+        #create a course
+        course = CourseFactory(teacher=teacher)
+
+        #create a status update
+        status_update = StatusUpdateFactory(user=teacher, course=course)
+
+        #log in as the teacher
+        self.client.force_login(teacher)
+
+        #send a GET request to the home view
+        response = self.client.get(reverse("users:home_view"))
+
+        #assert that the teacher home template is rendered
+        self.assertTemplateUsed(response, "users/teacher_home.html")
+
+        #serialize status updates
+        serialized_status_updates = StatusUpdateSerializer(status_update).data
+
+        #assert that the context contains the correct status updates - serializers working as expected
+        self.assertIn(serialized_status_updates, response.context["status_updates"])
+
+        #assert that the context contains the teacher's courses - serializers working as expected
+        self.assertIn(course, response.context["courses"])
