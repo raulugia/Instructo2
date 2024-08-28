@@ -6,11 +6,17 @@
     <div class="d-flex flex-column ps-3" style="margin-top: 100px; width: 25%">
         <div class="border rounded-3 px-2 py-2 bg-white shadow-sm" style="margin-top: 50px">
             <h4 class="mb-2">Your Courses</h4>
+            {% if courses %}
             <div class="d-flex flex-column">
                 {% for course in courses %}
                 <a href="{% url 'my_course_details_view'  course.id %}" class="fw-600">{{ course.title }}</a>
                 {% endfor %}
             </div>
+            {% else %}
+            <div class="fs-10 alert alert-info mt-1">
+                <p>You have not created any courses yet.</p>
+            </div>
+            {% endif %}
         </div>
     </div>
 
@@ -104,12 +110,30 @@
                 </div>
             </div>
             {% endfor %}
+            {% if not status_updates%}
+                <div class="fs-10 alert alert-info mt-1">
+                    <p class="fs-6">You have not posted any status updates yet.</p>
+                </div>
+            {% endif %}
         </div>
     </div>
 
     <!-- RIGHT COL -->
     <div class="d-flex flex-column pe-3" style="margin-top: 105px; width: 25%">
-        RIGHT
+        <div class="border rounded-3 px-2 py-2 bg-white shadow-sm" style="margin-top: 50px">
+            <h4 class="mb-2">Your Top 3 Courses</h4>
+            {% if top_3_courses %}
+            <div class="d-flex flex-column">
+                {% for course in top_3_courses %}
+                <a href="{% url 'my_course_details_view'  course.id %}" class="fw-600">{{ course.title }} <span class="text-muted">({{ course.student_count }})</span></a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="fs-10 alert alert-info mt-1">
+                <p>You have not created any courses yet.</p>
+            </div>
+            {% endif %}
+        </div>
     </div>
 </div>
 {% endblock maincontent %}

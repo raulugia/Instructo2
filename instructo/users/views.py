@@ -168,27 +168,32 @@ def home_view(request):
             combined_status_updates = StatusUpdate.objects.filter(
                 Q(user=request.user) | Q(course__in=enrolled_courses)
             ).order_by("-created_at")
-
+            
+            #serialize the combined status updates
             combined_status_updates_serializer = StudentHome_StatusUpdateSerializer(combined_status_updates, many=True)
+            
             #for every course the student is enrolled in, prefetch the course's weeks and test in every week - needed to display deadlines
             enrolled_courses_with_weeks = Course.objects.filter(id__in=enrolled_courses).prefetch_related("weeks__tests")
 
-
+            #serialize enrolled_courses_with_weeks
             course_serializer = StudentHome_CourseSerializer(enrolled_courses_with_weeks, many=True)
 
+            #construct the context
             context = {
                 "form": status_update_form,
                 "courses": course_serializer.data,
                 "status_updates": combined_status_updates_serializer.data
             }
 
-            #print(context)
-
+            #render the template with the context
             return render(request, "users/student_home.html", context)
 
+#view to render users' profiles
 @login_required
 def user_profile_view(request, username):
+    #GET case
     if request.method == "GET":
+        #fetch the user that current user is trying to see
         other_user = CustomUser.objects.get(username=username)
 
         #serialize the user's data to ensure only the required user's details are returned to the client
@@ -214,8 +219,10 @@ def user_profile_view(request, username):
                 "teacher_courses": teacher_courses,
             }
 
+            #render the template with the context
             return render(request, "users/user_profile.html", context)
         
+        #case current user is a student/teacher trying to see a teacher's profile
         elif (request.user.is_teacher or request.user.is_student) and other_user.is_teacher:
             #get the teacher's status updates
             status_updates = StatusUpdate.objects.filter(user=other_user).order_by("-created_at")
@@ -248,6 +255,7 @@ def user_profile_view(request, username):
                 "enrolled_courses_by_teacher": enrolled_courses,
             }
 
+            #render the template with the context
             return render(request, "users/user_profile.html", context)
     
     else:
