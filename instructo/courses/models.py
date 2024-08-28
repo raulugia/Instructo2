@@ -44,7 +44,7 @@ class Course(models.Model):
     def __str__(self):
         return self.title
 
-#
+#this model represents the weeks in a course
 class Week(models.Model):
     course = models.ForeignKey(Course,  on_delete=models.CASCADE, related_name="weeks")
     week_number = models.IntegerField()
@@ -52,6 +52,7 @@ class Week(models.Model):
     def __str__(self):
         return f"Week {self.week_number} of {self.course.title}"
 
+#this model represents the lessons in a week
 class Lesson(models.Model):
     week = models.ForeignKey(Week, on_delete=models.CASCADE, related_name="lessons")
     lesson_number = models.IntegerField()
@@ -61,44 +62,59 @@ class Lesson(models.Model):
     def __str__(self):
         return self.title
 
-#this model represents the test linked to every week in a course
+#this model represents the test in a week
 class Test(models.Model):
     week = models.ForeignKey(Week, on_delete=models.CASCADE, related_name="tests")
     title = models.CharField(max_length=100)
     description = models.TextField()
     deadline = models.DateField()
-    #resources = models.ManyToManyField("Resource", related_name="tasks", blank=True)
     grade = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
 
     def __str__(self):
         return self.title
     
+    #method to calculate if the test has been passed
     def is_passed(self):
+        #returns true if there is a grade and it is higher or equal to 50
         return self.grade is not None and self.grade >= 50
     
+    #method to check if the deadline has passed
     def has_deadline_passed(self):
+        #returns true if the current date is past the deadline
         return timezone.now().date() > self.deadline
 
+    #method to set the grade to 0 if the deadline has passed
     def update_grade_if_past_deadline(self):
+        #case the deadline has passed and there is no grade or it has not been passed 
         if self.has_deadline_passed() and (self.grade is None or not self.is_passed()):
+            #set grade to 0 and save the updated grade
             self.grade = 0
             self.save()
+
             return True
         return False
 
+    #method to get the answers provided by a student for a test 
     def get_user_answers(self, student):
         return UserAnswer.objects.filter(test=self, student=student)
     
+    #method to calculate the test grade
     def calculate_grade(self, student):
+        #get the student's answers
         user_answers = self.get_user_answers(student)
+        #get the total number of questions
         total_questions = self.questions.count()
 
+        #case student has not answered all the questions
         if user_answers.count() < total_questions:
             return None
 
+        #calculate the grade
         correct_answers = sum(1 for answer in user_answers if answer.selected_answer.is_correct)
+        #return the grade as a percentage
         return (correct_answers / total_questions) * 100 if total_questions > 0 else None
 
+#this model represents the questions in a test
 class Question(models.Model):
     test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name="questions")
     text = models.CharField(max_length=255)
@@ -106,6 +122,7 @@ class Question(models.Model):
     def __str__(self):
         return self.text
 
+#this model represents the answers to the questions in a test
 class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="answers")
     text = models.CharField(max_length=255)
@@ -114,7 +131,7 @@ class Answer(models.Model):
     def __str__(self):
         return self.text
 
-#model that represents the test answers selected by users
+#this model represents the test answers selected by users
 class UserAnswer(models.Model):
     student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="answers")
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="user_answers")
@@ -124,7 +141,7 @@ class UserAnswer(models.Model):
     def __str__(self):
         return f"@{self.student.username}'s answer to question: {self.question.text}"
 
-#this model represents the files linked to courses
+#this model represents the different types of resources users can upload
 class Resource(models.Model):
     RESOURCE_FORMAT_CHOICES = [
         ("pdf", "PDF"),
@@ -155,7 +172,7 @@ class Resource(models.Model):
     def __str__(self):
         return self.title
 
-#this model represent the students that enrolled a course
+#this model represent the students that enrolled in a course
 class Enrollment(models.Model):
     student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="enrollments")
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="course_enrollments")
@@ -168,10 +185,14 @@ class Enrollment(models.Model):
     def __str__(self):
         return f"@{self.student.username} enrolled in {self.course.title}"
     
+    #method to check if a student has completed a course
     def has_completed_course(self):
+        #get all the tests in the course
         tests = Test.objects.filter(week__course=self.course)
+        #return true if all the tests have been passed
         return all(test.is_passed() for test in tests)
 
+#this model represents the feedback students can leave in a course
 class Feedback(models.Model):
     student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="feedbacks")
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="course_feedbacks")
@@ -180,7 +201,7 @@ class Feedback(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     ##use auto_now so the field is set when feedback is modified
     updated_at = models.DateTimeField(auto_now=True)
-
+    
     def save(self, *args, **kwargs):
         #case user is not a student
         if not self.student.is_student:
