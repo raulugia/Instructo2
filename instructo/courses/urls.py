@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from django.contrib.auth.decorators import login_required
+from chat.views import group_chat_view
 
 urlpatterns = [
     path("create-course/", login_required(views.create_course_view, login_url="users:signIn_view"), name="create_course_view"),
@@ -13,5 +14,5 @@ urlpatterns = [
     path("my-courses/<int:course_id>/manage-resources/", login_required(views.manage_resources_view, login_url="users:signIn_view"), name="manage_resources_view"),
     path("my-courses/<int:course_id>/<int:week_number>/", login_required(views.my_course_details_view, login_url="users:signIn_view"), name="my_course_details_view"),
     path("my-courses/<int:course_id>/<int:week_number>/test/<int:test_id>", login_required(views.test_form_view, login_url="users:signIn_view"), name="test_form_view"),
-    path("my-courses/<int:course_id>/group-chat", login_required(views.group_chat_view, login_url="users:signIn_view"), name="group_chat_view"),
+    path("my-courses/<int:course_id>/group-chat", login_required(group_chat_view, login_url="users:signIn_view"), name="group_chat_view"),
 ]

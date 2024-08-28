@@ -1,9 +1,9 @@
 from django.test import TestCase
 from django.urls import reverse
-from users.models import CustomUser
-from .factories import CourseFactory, EnrollmentFactory
+from .factories import CourseFactory, EnrollmentFactory, FeedbackFactory
 from users.factories import CustomUserFactory
-from .models import Enrollment
+from .models import Enrollment, Feedback
+
 
 #All the code in this file was written without assistance
 
@@ -108,6 +108,7 @@ class ManageStudentsViewTest(TestCase):
         
         #create a course
         self.course = CourseFactory(teacher=self.teacher)
+        #enroll students
         EnrollmentFactory(course=self.course, student=self.student1)
         EnrollmentFactory(course=self.course, student=self.student2)
     
@@ -127,4 +128,47 @@ class ManageStudentsViewTest(TestCase):
         self.assertTrue(Enrollment.objects.filter(course=self.course, student=self.student2).exists())
 
 
+class LeaveFeedbackViewTest(TestCase):
+    #method to create a teacher, student and course and enroll student needed for the tests - test attributes
+    def setUp(self):
+        #create a teacher
+        self.teacher = CustomUserFactory(is_teacher=True, is_student=False)
+        #create a student
+        self.student = CustomUserFactory(is_teacher=False, is_student=True)
+       
+        #create a course
+        self.course = CourseFactory(teacher=self.teacher)
+        #enroll students
+        EnrollmentFactory(course=self.course, student=self.student)
         
+
+    #test method to ensure enrolled students can leave feedback
+    def test_student_can_leave_feedback(self):
+        #log in as the student
+        self.client.force_login(self.student)
+
+        #submit new feedback
+        feedback_content = "Test feedback long enough: Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem a"
+        post_data = {"feedback": feedback_content}
+        self.client.post(reverse("leave_feedback_view", args=[self.course.id]), post_data)
+
+        #assert that the feedback was saved successfully
+        self.assertTrue(Feedback.objects.filter(student=self.student, course=self.course, feedback=feedback_content).exists())
+    
+
+    #test method to ensure students can update their feedback
+    def test_student_can_update_feedback(self):
+        #create feedback
+        old_feedback_content = "Old test feedback long enough: Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem a"
+        FeedbackFactory(course=self.course, student=self.student, feedback= old_feedback_content)
+
+        #log in as the student
+        self.client.force_login(self.student)
+
+        #submit new feedback
+        new_feedback_content = "New test feedback long enough: Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem a"
+        post_data = {"feedback": new_feedback_content}
+        self.client.post(reverse("leave_feedback_view", args=[self.course.id]), post_data)
+
+        #assert that the feedback was updated successfully
+        self.assertTrue(Feedback.objects.filter(student=self.student, course=self.course, feedback= new_feedback_content).exists())

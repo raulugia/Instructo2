@@ -75,7 +75,7 @@ class EnrollmentFactory(factory.django.DjangoModelFactory):
 class FeedbackFactory(factory.django.DjangoModelFactory):
     student = factory.SubFactory(CustomUserFactory)
     course = factory.SubFactory(CourseFactory)
-    feedback = factory.Faker("text", max_nb_chars=200)
+    feedback = factory.Faker("text", max_nb_chars=200, min_chars=100)
 
     class Meta:
         model = Feedback

@@ -557,32 +557,32 @@ def test_form_view(request, course_id, week_number, test_id):
         return render(request, "courses/test_form.html", context)
 
 
-# Create your views here.
-@login_required
-def group_chat_view(request, course_id):
-    if request.method == "GET":
-        try:
-            course = Course.objects.get(id=course_id)
-            user = request.user
 
-            # if not user.is_student and user != course.teacher:
-            #     messages.error(request, "You do not have permission to access the chat")
-            #     return redirect("course_details_view", course_id=course_id)
+# @login_required
+# def group_chat_view(request, course_id):
+#     if request.method == "GET":
+#         try:
+#             course = Course.objects.get(id=course_id)
+#             user = request.user
 
-            enrollment = Enrollment.objects.filter(student=user, course=course).first()
-            if not enrollment and user != course.teacher:
-                messages.error(request, "You must enroll to access the chat")
-                return redirect("course_details_view", course_id=course_id)
+#             # if not user.is_student and user != course.teacher:
+#             #     messages.error(request, "You do not have permission to access the chat")
+#             #     return redirect("course_details_view", course_id=course_id)
 
-            chat_messages = Message.objects.filter(course=course).order_by('timestamp')
-            context = {
-                'course': course,
-                "messages": chat_messages,
-            }
+#             enrollment = Enrollment.objects.filter(student=user, course=course).first()
+#             if not enrollment and user != course.teacher:
+#                 messages.error(request, "You must enroll to access the chat")
+#                 return redirect("course_details_view", course_id=course_id)
 
-            return render(request, "courses/my_course_chat.html", context)
+#             chat_messages = Message.objects.filter(course=course).order_by('timestamp')
+#             context = {
+#                 'course': course,
+#                 "messages": chat_messages,
+#             }
+
+#             return render(request, "courses/my_course_chat.html", context)
         
-        except Course.DoesNotExist:
-                return JsonResponse({"error": f"Course with id {course_id} was not found."}, status=404)
-        except Enrollment.DoesNotExist:
-                return JsonResponse({"error": f"Course with id {course_id} was not found."}, status=404)
+#         except Course.DoesNotExist:
+#                 return JsonResponse({"error": f"Course with id {course_id} was not found."}, status=404)
+#         except Enrollment.DoesNotExist:
+#                 return JsonResponse({"error": f"Course with id {course_id} was not found."}, status=404)
