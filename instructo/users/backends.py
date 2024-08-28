@@ -1,6 +1,8 @@
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth import get_user_model
 
+#All the code in this file was written without assistance
+
 #custom authentication backend so users sign in with email instead of username
 
 class EmailBackend(ModelBackend):

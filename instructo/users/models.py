@@ -1,7 +1,9 @@
-#All the code in this file was written without assistance
+#imports
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from courses.models import Resource
+
+#All the code in this file was written without assistance
 
 #create a custom user model where email is unique
 class CustomUser(AbstractUser):
