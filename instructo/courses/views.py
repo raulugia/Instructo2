@@ -15,96 +15,104 @@ import os
 from users.models import CustomUser
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from django.http import HttpResponseBadRequest, HttpResponseNotFound
 
 #All the code in this file was written without assistance
 
+#view to create a course
 @login_required
 def create_course_view(request):
     if request.method == "GET":
-        print(request.user)
+        #case the user is not a teacher
         if not request.user.is_teacher:
+            #redirect user to the home page and display an error
             messages.error(request, "You must be a teacher to create a course.")
             return redirect("users:home_view")
+        
+
         form = CourseForm()
         return render(request, "courses/create_course.html", {"form" : form})
-    
+    #case post method
     elif request.method == "POST":
         form = CourseForm(request.POST, request.FILES)
-        print(request.POST)
-        print(request.user)
-        print("FILES: ",request.FILES)
+        
+        #case form is valid
         if form.is_valid():
             try:
+                #ensure that if there are errors no partial data is saved to the database - needed as other model instances linked to course will be saved in the helpers methods
                 with transaction.atomic():
+                    #save the course without committing
                     course = form.save(commit=False)
+                    #set the course's teacher
                     course.teacher = request.user
+                    #set the course's duration
                     course.duration_weeks = request.POST.get("duration_weeks")
-                    # course.save() 
-                    print("course: ", course)
-                    print("----FORM cleaned data: ", form.cleaned_data)
-
+ 
+                    #get the course cover picture
                     cover_picture = request.FILES.get("cover_picture")
+                    #case the teacher submitted a cover picture
                     if cover_picture:
-                        print("there is a cover pic: ", cover_picture)
+                        #create a new resource, create a thumbnail and upload both pics to supabase storage
                         cover_picture_resource = process_resource(cover_picture, "course_cover_picture")
+                        #set the course's cover picture
                         course.cover_picture = cover_picture_resource
                     
+                    #save the course
                     course.save()
 
-
+                    #get the course additional resources
                     additional_resources = request.FILES.getlist("additional_resources")
+                    #iterate over each resource
                     for resource_file in additional_resources:
+                        #create a new resource, create a thumbnail and upload both pics to supabase storage
                         additional_resource = process_resource(resource_file, "additional_resource")
+                        #set the course's additional resources
                         course.additional_resources.add(additional_resource)
                     
+                    #save the course
                     course.save()
 
-
+                    #get the course duration
                     num_weeks = int(request.POST.get("duration_weeks", 1))
 
+                    #iterate over every week
                     for i in range(1, num_weeks + 1):
-                        #print("num of weeks", num_weeks)
                         try:
-                            #print("trying to create week")
+                            #create week, lessons, tests, questions, answers and process resources
                             week = create_week(course, i, request.POST, request.FILES)
-                            #print("created week: ", week)
 
-                            #learning_material = request.FILES.get(f"learning_material_week{i}")
-                            #print("LEARNING MATERIAL: ", learning_material)
-                            # if learning_material:
-                            #     process_resource(learning_material, "learning_material", week=week)
-
+                        #add errors to the form if there is a validation error
                         except ValidationError as error:
                             error_message = " ".join(str(message) for message in error.messages)
                             form.add_error(None, f"Error in Week {i}: {error_message}")
-                            # for field, messages in error.message_dict.items():
-                            #     for message in messages:
-                            #         form.add_error(None ,f"Week {i} - {field.capitalize()}: {message}")
+
+                            #raise the error to trigger the rollback of the transaction
                             raise error
                         
                         
-                print("completed")
+                #redirect the user to the home view once the course has been created
                 return redirect("users:home_view")
+            
+            #case there were validation errors
             except ValidationError as error:
-                #form.add_error(None, error)
+                #render the form with the errors
                 return render(request, "courses/create_course.html", {"form": form})
         else:
-            # errors = {field: errors.get_json_data() for field, errors in form.errors.items()}
-            # print("form errors: ", errors)
-            # return JsonResponse({"errors": errors}, status=400)
+            #case the form is not valid - re-render the course creation page
             return render(request, "courses/create_course.html", {"form": form})
 
+#view to display the details of a course
 @login_required    
 def course_details_view(request, course_id):
     context ={}
     if request.method == "GET":
-        print("here")
         try:
+            #fetch the course
             course = Course.objects.get(id=course_id)
+            #serialize the course to get and shape the data needed for the template
             serializer = DetailsCoursesSerializer(course)
 
-            print(serializer.data)
-
+            #construct the context
             context = {
                 "course_data": serializer.data,
                 "is_teacher": False,
@@ -114,45 +122,63 @@ def course_details_view(request, course_id):
                 "student_completed_course": False
             }
 
+            #case user is a teacher
             if request.user.is_teacher:
+                #update context
                 context["is_teacher"] = True
+                #case teacher is the owner of the course
                 if course.teacher == request.user:
+                    #update context
                     context["is_course_teacher"] = True
             
+            #case user is a student
             if request.user.is_student:
+                #update context
                 context["is_student"] = True
-
+                #fetch enrollment to find out if user is enrolled in the course
                 enrollment = Enrollment.objects.filter(student=request.user, course=course).first()
 
+                #case student is enrolled
                 if enrollment:
+                    #update context
                     context["is_enrolled"] = True
                     context["has_completed_course"] = enrollment.has_completed_course()
             
+            #render template with context
             return render(request, "courses/course_details.html", context)
 
+        #case course does not exist
         except Course.DoesNotExist:
-            return JsonResponse({"error": f"Course with id {course_id} was not found."}, status=404)
+            messages.error(request, "The course does not exist.")
+            return redirect("users:home_view")
     
 
     #case request method is not GET or POST - return bad request
-    return JsonResponse({"error": "Bad Request"}, status=400)
+    return HttpResponseBadRequest("Bad Request")
 
+#view used by students to enroll in a course
 @login_required
 def enroll_course_view(request, course_id):
     if request.method == "POST":
         try:
+            #fetch the course
             course = Course.objects.get(id=course_id)
             user = request.user
 
+            #case user is a student
             if user.is_student:
+                #get or create an enrollment for the student
                 enrollment, created = Enrollment.objects.get_or_create(student=user, course=course)
 
+                #case the student was not enrolled
                 if created:
+                    #add success message
                     messages.success(request, "You have successfully enrolled in the course.")
                     
-                    #get the default channel layer
+                    #get the default channel layer for sending notifications
                     channel_layer = get_channel_layer()
-                    #send the notification
+                    
+                    #send the notification to the teacher
                     async_to_sync(channel_layer.group_send)(
                         f"{course.teacher.username}_notifications",
                         {
@@ -161,51 +187,78 @@ def enroll_course_view(request, course_id):
                         }
                     )
 
+                    #redirect the user to the course page where they can access the materials
                     return redirect("my_course_details_view", course_id=course_id)
+                
+                #case student was already enrolled
                 else:
                     messages.error(request, "Your are already enrolled in this course.")
                     return redirect("course_details_view", course_id=course_id)
+            
+            #case user is a teacher - teachers cannot enroll in courses
             else:
                 messages.error(request, "Only students can enroll in courses.")
                 return redirect("course_details_view", course_id=course_id)
-        
+        #case course does not exist
         except Course.DoesNotExist:
-            return JsonResponse({"error": f"Course with id {course_id} was not found."}, status=404)
+            messages.error(request, "The course does not exist.")
+            return redirect("users:home_view")
 
+#view to display the students enrolled in a course and remove them if needed
 @login_required
 def manage_students_view(request, course_id):
     context={}
+    #fetch the course
     course = Course.objects.get(id=course_id)
 
+    #case course's teacher is not the current user
     if course.teacher != request.user:
+        #add an error and redirect
         messages.error(request, "You must be the owner of the course to remove students")
         return redirect("course_details_view", course_id=course.id)
     
+    #case get method
     if request.method == "GET":
+        #fetch the enrolled students
         enrollments = Enrollment.objects.filter(course=course)
+
+        #construct the context
         context = {
             "course": course,
             "enrollments": enrollments
         }
+
+        #render the template with the context
         return render(request, "courses/manage_students.html", context)
     
+    #post case - teacher wants to remove students
     elif request.method == "POST":
-        print("HERE")
+        #get the selected students
         selected_students = request.POST.getlist("selected_students")
 
+        #case no selected students - add an error
         if not selected_students:
             messages.error(request, "No students were selected")
+        #case there are selected students
         else:
+            #iterate over the selected students
             for student_id in selected_students:
+                #fetch the student
                 student = CustomUser.objects.get(id=student_id)
+                #fetch the enrollment
                 enrollment = Enrollment.objects.filter(course=course, student=student)
+
+                #case the student is enrolled
                 if enrollment:
+                    #delete enrollment
                     enrollment.delete()
+                    #add a success message
                     messages.success(request, "Student(s) removed from the course successfully")
 
                     #notify the student using websocket
                     #get the default channel layer
                     channel_layer = get_channel_layer()
+                    
                     #send the notification
                     async_to_sync(channel_layer.group_send)(
                         f"{student.username}_notifications",
@@ -215,6 +268,7 @@ def manage_students_view(request, course_id):
                         }
                     )
 
+        #redirect teacher
         return redirect("manage_students_view", course_id=course_id)
 
 #view to update the resources related to a certain course
@@ -326,31 +380,38 @@ def manage_resources_view(request, course_id):
             return redirect("manage_resources_view", course_id=course_id)
 
 
+#view to display the course details and materials - student must be enrolled
 @login_required
 def my_course_details_view(request, course_id, week_number=None):
     context = {}
     #clear stored messages
     list(messages.get_messages(request))
+
+    #case no week number provided - redirect user to the first week
     if week_number is None:
         return redirect("my_course_details_view", course_id=course_id, week_number=1)
 
+    #case get
     if request.method == "GET":
         try:
+            #fetch course
             course = Course.objects.get(id=course_id)
             user = request.user
 
+            #case user is a student
             if user.is_student:
                 try:
+                    #get enrollment
                     enrollment = Enrollment.objects.get(student=user, course=course)
 
+                    #case the student is enrolled
                     if enrollment:
-                        #use prefetch_related to improve performance
+                        #get the week along with its related tests, questions and answers
                         week = Week.objects.prefetch_related("tests__questions__answers").get(course=course, week_number = week_number)
-                        #serializer = CourseSerializer(course)
+                        #serialize the fetched data
                         serializer = WeekSerializer(week, context={"student": user})
 
-                        print(serializer.data)
-
+                        #construct the context
                         context ={
                             "course": course,
                             "enrollment": enrollment,
@@ -358,68 +419,94 @@ def my_course_details_view(request, course_id, week_number=None):
                             "week_number": week_number,
                         }
 
+                        #render the template with the context
                         return render(request, "courses/my_course_details.html", context)
+                
+                #case user is not enrolled
                 except Enrollment.DoesNotExist:
                     messages.error(request, "You must be enrolled in the course to access its content.")
-                    return redirect("course_details_view", course_id=course.id)        
+                    return redirect("course_details_view", course_id=course.id)
+
+                #case week does not exist        
                 except Week.DoesNotExist:
                     messages.error(request, "The selected week does not exist")
                     return redirect("my_course_details", course_id=course.id, week_number=week_number)
 
+        #case course does not exist
         except Course.DoesNotExist:
             messages.error(request, "The selected course does not exist")
             return redirect("users:home_view")        
         
-
+#view to see the additional resources in a course
 @login_required
 def additional_resources_view(request, course_id):
     context={}
     if request.method == "GET":
         try:
+            #fetch the course
             course = Course.objects.get(id=course_id)
-            print(course.additional_resources.all())
+            #serialize the course to get the right data
             serializer = CourseResourcesSerializer(course)
-            print(serializer.data)
+            
+            #construct the context
             context={
                 "course_data": serializer.data
             }
 
+            #render the template with the context
             return render(request, "courses/additional_resources.html", context) 
         
+        #case course does not exist
         except Course.DoesNotExist:
-            return JsonResponse({"error": f"Course with id {course_id} was not found."}, status=404)
-        
+            messages.error(request, "The selected course does not exist")
+            return redirect("users:home_view")
+
+#view to create/update feedback        
 @login_required
 def leave_feedback_view(request, course_id):    
     try:
+        #fetch the course
         course = Course.objects.get(id=course_id)
         user = request.user
-
+        
+        #case user is not a student
         if not user.is_student:
             messages.error(request, "Only students can leave feedback.")
             return redirect("course_details_view")
 
+        #case the user is a student
         if user.is_student:
+            #fetch the enrollment
             enrollment = Enrollment.objects.get(student=user, course=course)
 
+            #case student is not enrolled
             if not enrollment:
                 messages.error(request, "You must enroll the course to leave feedback.")
                 return redirect("course_details_view")
             
             try:
+                #try to fetch existing feedback by current user
                 feedback = Feedback.objects.get(student=user, course=course)
+                #update flag
                 existing_feedback = True
+            
+            #case there is no existing feedback
             except Feedback.DoesNotExist:
+                #set feedback to none
                 feedback = None
+                #update flag
                 existing_feedback = False
 
+            #case get
             if request.method == "GET":
                 ##only add the info message if there are no success messages
                 if existing_feedback and not any(message.level == messages.SUCCESS for message in messages.get_messages(request)):
                     messages.info(request, "You have already reviewed this course.")
 
+                #prepare form
                 form = FeedbackForm()
 
+                #construct context
                 context = {
                     "course": course,
                     "form": form,
@@ -427,8 +514,10 @@ def leave_feedback_view(request, course_id):
                     "feedback": feedback,
                 }
 
+                #render template with context
                 return render(request, "courses/leave_feedback.html", context)
             
+            #case post
             elif request.method == "POST":
                 stored_messages = messages.get_messages(request)
                 stored_messages.used = True
@@ -441,28 +530,39 @@ def leave_feedback_view(request, course_id):
                 }
 
                 if form.is_valid():
-                    print("form is valid")
+                    #case there is existing feedback
                     if existing_feedback:
+                        #update existing feedback
                         feedback.feedback = form.cleaned_data["feedback"]
+                        #save the new feedback and add a message
                         feedback.save()
                         messages.success(request, "Your feedback was updated successfully")
+                    #case no pre-existing feedback    
                     else:
+                        #save the new feedback without committing
                         feedback = form.save(commit=False)
+                        #set feedback's student and course
                         feedback.student = user
                         feedback.course = course
+
+                        #save feedback and add a success message
                         feedback.save()
                         messages.success(request, "Your feedback has been submitted successfully")
                     
+                    #redirect student to the same page 
                     return redirect("leave_feedback_view", course_id=course.id)
+                
+                #case form was not valid
                 else:
                     return render(request, "courses/leave_feedback.html", context)
-    
+    #case course does not exist
     except Course.DoesNotExist:
-        return JsonResponse({"error": f"Course with id {course_id} was not found."}, status=404)
+        messages.error(request, "The selected course does not exist")
+        return redirect("users:home_view")
 
     
 
-
+#view to submit a test or see the previous result
 @login_required
 def test_form_view(request, course_id, week_number, test_id):
     #initialize the context dictionary
@@ -555,34 +655,3 @@ def test_form_view(request, course_id, week_number, test_id):
 
         #render the form with feedback
         return render(request, "courses/test_form.html", context)
-
-
-
-# @login_required
-# def group_chat_view(request, course_id):
-#     if request.method == "GET":
-#         try:
-#             course = Course.objects.get(id=course_id)
-#             user = request.user
-
-#             # if not user.is_student and user != course.teacher:
-#             #     messages.error(request, "You do not have permission to access the chat")
-#             #     return redirect("course_details_view", course_id=course_id)
-
-#             enrollment = Enrollment.objects.filter(student=user, course=course).first()
-#             if not enrollment and user != course.teacher:
-#                 messages.error(request, "You must enroll to access the chat")
-#                 return redirect("course_details_view", course_id=course_id)
-
-#             chat_messages = Message.objects.filter(course=course).order_by('timestamp')
-#             context = {
-#                 'course': course,
-#                 "messages": chat_messages,
-#             }
-
-#             return render(request, "courses/my_course_chat.html", context)
-        
-#         except Course.DoesNotExist:
-#                 return JsonResponse({"error": f"Course with id {course_id} was not found."}, status=404)
-#         except Enrollment.DoesNotExist:
-#                 return JsonResponse({"error": f"Course with id {course_id} was not found."}, status=404)
