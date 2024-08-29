@@ -461,6 +461,60 @@ def additional_resources_view(request, course_id):
             messages.error(request, "The selected course does not exist")
             return redirect("users:home_view")
 
+@login_required
+def grades_view(request, course_id):
+    #case get
+    if request.method == "GET":
+        user = request.user
+
+        try:
+            course = Course.objects.get(id=course_id)
+            #get the enrollment between user and course
+            enrollment =  Enrollment.objects.get(student=user, course=course)
+
+            #case student is not enrolled - redirect
+            if not enrollment:
+                messages.error(request, "You must enroll in the course to access this data.")
+                return redirect("course_details_view", course_id=course_id)
+
+            #fetch all the tests in the course through the Week model
+            tests = Test.objects.filter(week__course=course).order_by("week__week_number")
+            
+            #initialize empty list to store the grades
+            grades_data = []
+            for test in tests:
+                #update the grade if the deadline has passed and the test ha snot been completed or failed
+                test.update_grade_if_past_deadline()
+
+                print(test.is_passed())
+
+                #append the data to the list
+                grades_data.append({
+                    "week_number": test.week.week_number,
+                    "test_title": test.title,
+                    "deadline": test.deadline,
+                    "grade": test.grade if test.grade is not None else "--",
+                    "is_passed": test.is_passed()
+                })
+
+            #construct the context
+            context={
+                "course": course,
+                "grades_data": grades_data
+            }
+
+            #render the template with the context
+            return render(request, "courses/grades.html", context)
+        
+        #case course does not exist
+        except Course.DoesNotExist:
+            messages.error(request, "The selected course does not exist")
+            return redirect("users:home_view")
+
+            
+
+            
+
 #view to create/update feedback        
 @login_required
 def leave_feedback_view(request, course_id):    

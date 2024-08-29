@@ -5,6 +5,8 @@ from users.factories import CustomUserFactory
 
 #All the code in this file was written without assistance
 
+#this file has factory classes needed to create test data imitating the project's models.
+
 class ResourceFactory(factory.django.DjangoModelFactory):
     title = factory.Faker("sentence", nb_words=4)
     file = factory.Faker("url")

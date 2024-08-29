@@ -1,12 +1,19 @@
 {% extends "navbar.html" %}
 {% load custom_filters %}
+{% load static %}
+
+{% comment %} All the code in this file was written without assistance {% endcomment %}
 
 {% block maincontent %}
 <div class="d-flex flex-column min-vh-100 justify-content-start align-items-start bg-light pt-5 px-5">
     <div class="w-100 mt-5 d-flex justify-content-between align-items-end border border-dark border-2 bg-white px-4 py-3" style="border-radius: 10px">
         <div class="w-100 d-flex justify-content-between">
             <div class="bg-secondary rounded-3 me-5 object-cover w-50" style="width: 350px; height: 250px;">
-                <img class="w-100 h-100 border rounded-3 overflow-hidden" src={{ course_data.cover_thumbnail}} />
+                {% if course_data.cover_thumbnail %}
+                    <img class="w-100 h-100 border rounded-3 overflow-hidden" src="{{ course_data.cover_thumbnail}}" onerror="this.onerror = null; this.src='{% static 'images/default_course_cover_picture.jpg' %}'"/>
+                {% else %}
+                    <img class="w-100 h-100 border rounded-3 overflow-hidden" src="{% static 'images/default_course_cover_picture.jpg' %}" />
+                {% endif %}
             </div>
             <div class="d-flex flex-column justify-content-between w-50">
                 <div>
@@ -19,7 +26,7 @@
                 </div>
             </div>
         </div>
-        <div class="w-25 d-flex justify-content-end">
+        <div class="w-50 d-flex justify-content-end">
             <!-- case student has not enrolled -->
             {% if is_student and not is_enrolled %}
             <form action="{% url 'enroll_course_view' course_data.id %}" method="post">
@@ -34,7 +41,10 @@
                 <p class="py-2 px-3 rounded-3 bg-success text-white fw-normal fs-5">Course Completed</p>
             <!-- Case user is the creator of the course -->
             {% elif is_teacher and is_course_teacher %}
-                <a role="button" href="{% url 'manage_students_view' course_data.id %}" class="btn btn-primary btn-lg">Manage Students</a>
+            <div class="d-flex gap-2">
+                <a role="button" href="{% url 'manage_students_view' course_data.id %}" class="btn btn-primary">Manage Students</a>
+                <a role="button" href="{% url 'manage_resources_view' course_data.id %}" class="btn btn-primary">Manage Resources</a>
+            </div>
             {% endif %}
         </div>
     </div>
@@ -81,7 +91,11 @@
                     <div class="row g-0">
                         <div class="col-md-4 my-auto d-flex flex-column align-items-center jutify-content-between">
                             <div class="col-md-4 bg-primary rounded-circle" style="height: 100px; width: 100px">
-                              <!-- <img src="..." class="img-fluid rounded-start" alt="..."> -->
+                                {% if feedback.student_profile_picture %}
+                                <img src="{{ feedback.student_profile_picture }}" onerror="this.onerror = null; this.src='{% static 'images/default_profile_picture.jpg' %}'" class="w-100"/>
+                                {%else %}
+                                <img src="{% static 'images/default_profile_picture.jpg' %}" onerror="this.onerror = null; this.src='{% static 'images/default_profile_picture.jpg' %}'" class="w-100"/>
+                                {% endif %}
                             </div>
                             <p class="fw-600">@{{ feedback.student_name }}</p>
                         </div>
@@ -93,9 +107,9 @@
                           <div class="w-100 d-flex justify-content-end mt-3">
                             <!-- Display updated_at if updated_at and created_at are different meaning user updated their feedback -->
                             {% if feedback.updated_at != feedback.created_at %}
-                                <p class="card-text"><small class="text-muted">Updated at {{ feedback.updated_at}}</small></p>
+                                <p class="card-text"><small class="text-muted">Updated on {{ feedback.updated_at}}</small></p>
                             {% else %}
-                                <p class="card-text"><small class="text-muted">Created at {{ feedback.created_at}}</small></p>
+                                <p class="card-text"><small class="text-muted">Created on {{ feedback.created_at}}</small></p>
                             {% endif %}
                           </div>
                         </div>
@@ -103,6 +117,11 @@
                     </div>
                 </div>
                 {% endfor %}
+                {% if not course_data.feedbacks %}
+                <div class="fs-10 alert alert-info mt-1">
+                    <p class="fs-6">There is no feedback for this course yet.</p>
+                </div>
+                {% endif %}
             </div>
         </div>
 

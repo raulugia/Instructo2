@@ -1,10 +1,11 @@
 {% extends "navbar.html" %}
 {% load custom_filters %}
+{% comment %} All the code in this file was written without assistance {% endcomment %}
 
 {% block maincontent %}
 <div class="d-flex flex-column min-vh-100 justify-content-start align-items-start bg-light pt-5 px-5">
     <div class="px-4 me-4 py-4 w-100 bg-white d-flex flex-column gap-2 ps-5 border border-2 rounded-3" style="margin-top: 20px; min-height: 500px">
-        <h1 class="mt-3 fs-4 mb-2">Manage Students for : {{ course.title }}</h1>
+        <h1 class="mt-3 fs-4 mb-2">Manage Students for: {{ course.title }}</h1>
         <p class="mb-3">Select the students you want to remove from the course and press the remove button</p>
         {% if messages %}
             {% for message in messages %}

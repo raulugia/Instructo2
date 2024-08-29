@@ -12,6 +12,7 @@ urlpatterns = [
     path("my-courses/<int:course_id>/", login_required(views.my_course_details_view, login_url="users:signIn_view"), name="my_course_details_view"),
     path("my-courses/<int:course_id>/additional-resources/", login_required(views.additional_resources_view, login_url="users:signIn_view"), name="additional_resources_view"),
     path("my-courses/<int:course_id>/leave-feedback/", login_required(views.leave_feedback_view, login_url="users:signIn_view"), name="leave_feedback_view"),
+    path("my-courses/<int:course_id>/grades/", login_required(views.grades_view, login_url="users:signIn_view"), name="grades_view"),
     path("my-courses/<int:course_id>/manage-students/", login_required(views.manage_students_view, login_url="users:signIn_view"), name="manage_students_view"),
     path("my-courses/<int:course_id>/manage-resources/", login_required(views.manage_resources_view, login_url="users:signIn_view"), name="manage_resources_view"),
     path("my-courses/<int:course_id>/<int:week_number>/", login_required(views.my_course_details_view, login_url="users:signIn_view"), name="my_course_details_view"),

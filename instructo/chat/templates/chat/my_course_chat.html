@@ -1,24 +1,32 @@
 {% extends "navbar.html" %}
 {% load custom_filters %}
 
+{% comment %} All the code in this file was written without assistance {% endcomment %}
+
+{% load static %}
+
 {% block maincontent %}
 <div class="d-flex min-vh-100 justify-content-between align-items-start bg-light pt-5 pb-5 align-items-stretch">
     <div class="d-flex flex-column gap-3 mt-5 ms-5">
         <div class="mb-5 fw-bold">
             <h6>{{ course.title }}</h6>
             <div class="bg-secondary rounded-3 me-5 mt-3" style="width: 110px; height: 80px;">
-                {% comment %} <img src="http://placehold.it/" /> {% endcomment %}
+                {% if course.cover_picture %}
+                    <img class="w-100 h-100 border rounded-3 overflow-hidden" src="{{ course.cover_picture.thumbnail}}" onerror="this.onerror = null; this.src='{% static 'images/default_course_cover_picture.jpg' %}'"/>
+                {% else %}
+                    <img class="w-100 h-100 border rounded-3 overflow-hidden" src="{% static 'images/default_course_cover_picture.jpg' %}" />
+                {% endif %}
             </div>
         </div>
         <h5 data-bs-toggle="collapse" data-bs-target ="#collapse" role="button">Weeks</h5>
         <div class="ms-2 collapse" id="collapse">
-            {% for week_number in course.duration_weeks|times %}
-                <p>Week {{ week_number }}</p>
+            {% for week in course_weeks %}
+                <a href="{% url 'my_course_details_view' course.id week.week_number %}">Week {{ week.week_number }}</a>
             {% endfor %}
         </div>
-        <h5 role="button">Resources</h5>
-        <h5 role="button">Grades</h5>
-        <h5 role="button">Chat</h5>
+        <a href="{% url 'additional_resources_view' course.id %}" class="fs-5 fw-600 text-black" role="button">Resources</a>
+        <a href="{% url 'grades_view'}" class="fs-5 fw-600 text-black" role="button">Grades</a>
+        <a class="fs-5 fw-600 text-black" role="button">Chat</a>
     </div>
 
     {% comment %} Left side {% endcomment %}

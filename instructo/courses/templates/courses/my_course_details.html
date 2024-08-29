@@ -1,5 +1,6 @@
 {% extends "navbar.html" %}
 {% load custom_filters %}
+{% comment %} All the code in this file was written without assistance {% endcomment %}
 
 {% block maincontent %}
 <div class="d-flex min-vh-100 justify-content-between align-items-start bg-light pt-5">
@@ -7,7 +8,7 @@
         <div class="mb-5 fw-bold">
             <h6>{{ course.title }}</h6>
             <div class="bg-secondary rounded-3 overflow-hidden me-5 mt-3" style="width: 110px; height: 80px;">
-                <img class="w-100 h-100" src={{ course.cover_picture.thumbnail }} />
+                <img class="w-100 h-100" src="{{ course.cover_picture.thumbnail }}" />
             </div>
         </div>
         <h5 data-bs-toggle="collapse" data-bs-target ="#collapse" role="button">Weeks</h5>
@@ -118,13 +119,5 @@
             </div>
         </div>
     </div>
-    {% comment %} <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-        {% for message in messages %}
-        <div class="alert {% if message.tags %} alert={{ message.tags }} {% else %} alert-info {% endif %} alert-dismissible fade show" role="alert">
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            {{ message }} 
-        </div>
-        {% endfor %}
-    </div> {% endcomment %}
     
 {% endblock maincontent %}

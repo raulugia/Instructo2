@@ -1,11 +1,12 @@
 {% extends "navbar.html" %}
 {% load custom_filters %}
+{% comment %} All the code in this file was written without assistance {% endcomment %}
 
 {% block maincontent %}
 <div class="d-flex flex-column min-vh-100 justify-content-start align-items-start bg-light pt-5 px-5">
     <div class="px-4 me-4 py-4 w-100 bg-white d-flex flex-column gap-2 ps-5 border border-2 rounded-3" style="margin-top: 20px; min-height: 500px">
-        <h1 class="mt-3 fs-4 mb-2">Manage Students for : {{ course.title }}</h1>
-        <p class="mb-3">Select the students you want to remove from the course and press the remove button</p>
+        <h1 class="mt-3 fs-4 mb-2">Manage Resources for: {{ course.title }}</h1>
+        <p class="mb-3">The existing resources are displayed with an input file so you can update them. You can also add new resources.</p>
         {% if messages %}
             {% for message in messages %}
                 <div class="alert {% if 'error' in message.tags %}alert-danger{% else %}alert-success{% endif %}">
@@ -19,7 +20,7 @@
             <div>
                 <h5>Cover Picture</h5>
                 <div class="bg-secondary rounded-3 overflow-hidden me-5 mt-3" style="width: 110px; height: 80px;">
-                    <img class="w-100 h-100" src={{ course.cover_picture.thumbnail }} />
+                    <img class="w-100 h-100" src="{{ course.cover_picture.thumbnail }}" />
                 </div>
                 <div class="my-3">
                     <label for="formFile" class="form-label">New cover picture</label>
@@ -38,11 +39,11 @@
                     {% if additional_resource.resource_format == "image" %}
                         {% if additional_resource.thumbnail %}
                             <div class="bg-secondary rounded-3 overflow-hidden me-5" style="width: 110px; height: 80px;">
-                                <img class="w-100 h-100" src={{ additional_resource.thumbnail }} />
+                                <img class="w-100 h-100" src="{{ additional_resource.thumbnail }}" />
                             </div>
                         {% else %}
                             <div class="bg-secondary rounded-3 overflow-hidden me-5" style="width: 110px; height: 80px;">
-                                <img class="w-100 h-100" src={{ resource.file}} />
+                                <img class="w-100 h-100" src="{{ resource.file}}" />
                             </div>
                         {% endif %}
                     {% elif additional_resource.resource_format == "pdf" %}
@@ -55,6 +56,11 @@
                     </div>
                     </div>   
                 {% endfor %}
+                {% if not additional_resources %}
+                <div class="fs-10 alert alert-info my-auto">
+                    <p class="fs-6">There are no additional resources in this course.</p>
+                </div>
+                {% endif %}
                 </div>
 
                 <p class="" style="font-size: 14px">Press "Add File" to add more additional resources to the course.</p>
@@ -80,11 +86,11 @@
                                 {% if resource.resource_format == "image" %}
                                     {% if resource.thumbnail %}
                                     <div class="bg-secondary rounded-3 overflow-hidden me-5" style="width: 110px; height: 80px;">
-                                        <img class="w-100 h-100" src={{ resource.thumbnail }} />
+                                        <img class="w-100 h-100" src="{{ resource.thumbnail }}" />
                                     </div>
                                     {% else %}
                                     <div class="bg-secondary rounded-3 overflow-hidden me-5" style="width: 110px; height: 80px;">
-                                        <img class="w-100 h-100" src={{ resource.file}} />
+                                        <img class="w-100 h-100" src="{{ resource.file}}" />
                                     </div>
                                     {% endif %}
                                 {% endif %}    

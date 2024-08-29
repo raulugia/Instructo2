@@ -27,7 +27,7 @@
                     <div class="border bg-white px-5 py-3 d-flex flex-column align-items-center shadow-sm" style="border-radius: 10px">
                         <a href="{% url 'users:user_profile_view' user.username %}" class="rounded-circle mb-3" style="height: 140px; width: 140px">
                             {% if user.profile_picture.file %}
-                            <img src={{ user.profile_picture.file }} onerror="this.onerror = null; this.src='{% static 'images/default_profile_picture.jpg' %}'" class="w-100"/>
+                            <img src="{{ user.profile_picture.file }}" onerror="this.onerror = null; this.src='{% static 'images/default_profile_picture.jpg' %}'" class="w-100"/>
                             {%else %}
                             <img src="{% static 'images/default_profile_picture.jpg' %}" onerror="this.onerror = null; this.src='{% static 'images/default_profile_picture.jpg' %}'" class="w-100"/>
                             {% endif %}

@@ -159,6 +159,8 @@ class DetailsWeekSerializer(serializers.ModelSerializer):
 class DetailsFeedbackSerializer(serializers.ModelSerializer):
     #include the student's username
     student_name = serializers.CharField(source="student.username", read_only=True)
+    #include the student's profile picture
+    student_profile_picture = serializers.SerializerMethodField()
     #format the created at field
     created_at = serializers.DateTimeField(format="%d/%m/%Y at %H:%M")
     #format the updated at field
@@ -166,7 +168,17 @@ class DetailsFeedbackSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Feedback
-        fields = ["student_name", "feedback", "created_at", "updated_at"]
+        fields = ["student_name", "feedback", "created_at", "updated_at", "student_profile_picture"]
+    
+    #get the student's profile picture
+    def get_student_profile_picture(self, obj):
+        #get the profile picture
+        profile_picture = obj.student.profile_picture
+        
+        #case the student has a profile picture
+        if profile_picture:
+            #return thumbnail or file (url)
+            return profile_picture.thumbnail if profile_picture.thumbnail else profile_picture.file
 
 
 class DetailsCoursesSerializer(serializers.ModelSerializer):
