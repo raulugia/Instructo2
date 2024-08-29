@@ -13,12 +13,12 @@
         </div>
         <h5 data-bs-toggle="collapse" data-bs-target ="#collapse" role="button">Weeks</h5>
         <div class="ms-2 collapse" id="collapse">
-            {% for week_number in course.duration_weeks|times %}
-                <p>Week {{ week_number }}</p>
+            {% for week in course_weeks %}
+                <a href="{% url 'my_course_details_view' course.id week.week_number %}">Week {{ week.week_number }}</a>
             {% endfor %}
         </div>
         <a href="{% url 'additional_resources_view' course_id=course.id %}" role="button" class="fs-5 text-dark fw-600">Resources</a>
-        <h5 role="button">Grades</h5>
+        <a href="{% url 'grades_view' course.id %}" class="fs-5 fw-600 text-black" role="button">Grades</a>
         <a href="{% url 'group_chat_view' course_id=course.id %}" role="button" class="fs-5 text-dark fw-600">Chat</a>
         <a href="{% url 'leave_feedback_view' course_id=course.id %}" role="button" class="fs-5 text-dark fw-600">Feedback</a>
     </div>

@@ -25,8 +25,7 @@
             {% endfor %}
         </div>
         <a href="{% url 'additional_resources_view' course.id %}" class="fs-5 fw-600 text-black" role="button">Resources</a>
-        <a href="{% url 'grades_view'}" class="fs-5 fw-600 text-black" role="button">Grades</a>
-        <a class="fs-5 fw-600 text-black" role="button">Chat</a>
+        <a href="{% url 'grades_view' course.id %}" class="fs-5 fw-600 text-black" role="button">Grades</a>
     </div>
 
     {% comment %} Left side {% endcomment %}

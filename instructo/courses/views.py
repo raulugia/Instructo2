@@ -406,6 +406,8 @@ def my_course_details_view(request, course_id, week_number=None):
 
                     #case the student is enrolled
                     if enrollment:
+                        #fetch the course weeks so construct urls in the template to a particular week
+                        course_weeks = Week.objects.filter(course=course).order_by('week_number')
                         #get the week along with its related tests, questions and answers
                         week = Week.objects.prefetch_related("tests__questions__answers").get(course=course, week_number = week_number)
                         #serialize the fetched data
@@ -417,6 +419,7 @@ def my_course_details_view(request, course_id, week_number=None):
                             "enrollment": enrollment,
                             "course_data": serializer.data,
                             "week_number": week_number,
+                            "course_weeks": course_weeks,
                         }
 
                         #render the template with the context
