@@ -381,7 +381,7 @@ def manage_resources_view(request, course_id):
             return redirect("manage_resources_view", course_id=course_id)
 
 
-#view to display the course details and materials - student must be enrolled
+#view to display the course details and materials - student must be enrolled or user must be the course teacher
 @login_required
 def my_course_details_view(request, course_id, week_number=None):
     context = {}
@@ -400,13 +400,17 @@ def my_course_details_view(request, course_id, week_number=None):
             user = request.user
 
             #case user is a student
-            if user.is_student:
+            if user.is_student or request.user == course.teacher:
                 try:
-                    #get enrollment
-                    enrollment = Enrollment.objects.get(student=user, course=course)
+                    #initialize enrollment
+                    enrollment = None
+                    #case user is a student
+                    if request.user.is_student:
+                        #get enrollment
+                        enrollment = Enrollment.objects.get(student=user, course=course)
 
-                    #case the student is enrolled
-                    if enrollment:
+                    #case the student is enrolled or user is the course teacher
+                    if enrollment or request.user == course.teacher:
                         #fetch the course weeks so construct urls in the template to a particular week
                         course_weeks = Week.objects.filter(course=course).order_by('week_number')
                         #get the week along with its related tests, questions and answers
@@ -425,11 +429,11 @@ def my_course_details_view(request, course_id, week_number=None):
 
                         #render the template with the context
                         return render(request, "courses/my_course_details.html", context)
-                
-                #case user is not enrolled
-                except Enrollment.DoesNotExist:
-                    messages.error(request, "You must be enrolled in the course to access its content.")
-                    return redirect("course_details_view", course_id=course.id)
+                    
+                    else:
+                        #case user is not enrolled or it is not the course teacher
+                        messages.error(request, "You must be enrolled in the course to access its content.")
+                        return redirect("course_details_view", course_id=course.id)
 
                 #case week does not exist        
                 except Week.DoesNotExist:
@@ -517,8 +521,6 @@ def grades_view(request, course_id):
 
             
 
-            
-
 #view to create/update feedback        
 @login_required
 def leave_feedback_view(request, course_id):    
@@ -530,7 +532,7 @@ def leave_feedback_view(request, course_id):
         #case user is not a student
         if not user.is_student:
             messages.error(request, "Only students can leave feedback.")
-            return redirect("course_details_view")
+            return redirect("course_details_view", course_id=course_id)
 
         #case the user is a student
         if user.is_student:
@@ -540,7 +542,7 @@ def leave_feedback_view(request, course_id):
             #case student is not enrolled
             if not enrollment:
                 messages.error(request, "You must enroll the course to leave feedback.")
-                return redirect("course_details_view")
+                return redirect("course_details_view", course_id=course_id)
             
             try:
                 #try to fetch existing feedback by current user
@@ -746,3 +748,5 @@ def my_courses_view(request):
 
             #render the template with the context
             return render(request, "courses/my_courses.html", context)
+    else:
+        return HttpResponseBadRequest("Bad Request")

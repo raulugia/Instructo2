@@ -14,9 +14,10 @@ def group_chat_view(request, course_id):
             course = Course.objects.get(id=course_id)
             user = request.user
 
-            # if not user.is_student and user != course.teacher:
-            #     messages.error(request, "You do not have permission to access the chat")
-            #     return redirect("course_details_view", course_id=course_id)
+            #case the user is not a student or the course teacher
+            if not user.is_student and user != course.teacher:
+                messages.error(request, "You do not have permission to access the chat")
+                return redirect("course_details_view", course_id=course_id)
 
             #fetch the enrollment between user and course
             enrollment = Enrollment.objects.filter(student=user, course=course).first()
@@ -37,6 +38,7 @@ def group_chat_view(request, course_id):
                 "course_weeks": course_weeks
             }
 
+            #render template with context
             return render(request, "chat/my_course_chat.html", context)
         
         except Course.DoesNotExist:

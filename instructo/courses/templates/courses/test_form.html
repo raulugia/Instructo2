@@ -12,6 +12,11 @@
                 <h5 class="mt-1 {% if grade < 50 %} text-danger {% else %} text-success {% endif %}">Your Grade: {{ grade }}%</h5>
             {% endif %}
         </div>
+        {% if request.user.is_teacher %}
+        <div class="fs-10 alert alert-info">
+            <p class="fs-6">Course teachers cannot submit test forms.</p>
+        </div>
+        {% endif %}
         <p>Select the correct answer or answers for the following questions:</p>
         <ol class="mt-3">
             {% for question in questions %}
@@ -47,8 +52,11 @@
         </ol>
         <div class="w-100 d-flex justify-content-end gap-2">
             <a href="{% url 'my_course_details_view' course_id=test.week.course.id week_number=week_number %}" class="btn btn-secondary mt-5">Go Back</a>
-            {% if mode != "feedback" %}
-                <button type="submit" class="btn btn-primary mt-5">Submit Test</button>
+            {% comment %} ensure course teacher cannot submit the form {% endcomment %}
+            {% if request.user.is_student %}
+                {% if mode != "feedback" %}
+                    <button type="submit" class="btn btn-primary mt-5">Submit Test</button>
+                {% endif %}
             {% endif %}
         </div>
     </form>
