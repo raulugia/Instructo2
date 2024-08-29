@@ -4,6 +4,8 @@ from .models import Course, Question, Answer, Test, Lesson,Week, Resource, UserA
 from django import forms
 from django.utils import timezone
 
+#All the code in this file was written without assistance
+
 #helper to normalize and validate text
 def normalize_and_validate_text(field_value, field_name, model_name):
     #case there is a field_value and it is not a whitespace
@@ -24,50 +26,28 @@ class CourseForm(ModelForm):
         model = Course
         fields = ["title", "description", "duration_weeks", "cover_picture"]
     
+    #validate duration_weeks
     def clean_duration_weeks(self):
+        #get duration_weeks
         duration_weeks = self.cleaned_data.get("duration_weeks")
+        #case course is too long/short
         if duration_weeks < 1 or duration_weeks > 30:
+            #raise a validation error
             raise ValidationError("Duration must be between 1 and 30.")
+        #returned validated duration_weeks
         return duration_weeks
     
     def clean_title(self):
         title = self.cleaned_data.get("title")
-        #
+        #validate title
         return normalize_and_validate_text(title, "title", "Course")
-        # #case there is a title and it is not a whitespace
-        # if title and len(title.strip()) > 0:
-        #     #normalize - remove spaces at the beginning/end and capitalize first letter
-        #     title = title.strip().capitalize()
-
-        # #case there is no title or it is a whitespace
-        # if not title or len(title.strip()) == 0:
-        #     #raise validation error
-        #     raise ValidationError("Title cannot be empty.")
-
-        # #return normalized title    
-        # return title
+        
     
     def clean_description(self):
         description = self.cleaned_data.get("description")
+        #validate description
         return normalize_and_validate_text(description, "description", "Course")
-        # #case there is a title and it is not a whitespace
-        # if description and len(description.strip()) > 0:
-        #     #normalize - remove spaces at the beginning/end and capitalize first letter
-        #     description = description.strip().capitalize()
-
-        # #case there is no description or it is a whitespace
-        # if not description or len(description.strip()) == 0:
-        #     #raise validation error
-        #     raise ValidationError("Description cannot be empty.")
         
-        # #return normalized description
-        # return description
-    
-    # def clean_cover_picture(self):
-    #     cover_picture = self.cleaned_data.get("cover_picture")
-    #     if cover_picture and not cover_picture.lower().endswith((".jpg", ".jpeg", ".svg", ".png", ".bmp", ".webp", ".heic", ".heif", ".tiff")):
-    #         raise ValidationError("Invalid image format for course cover picture.")
-    #     return cover_picture
 
 class QuestionForm(forms.ModelForm):
     class Meta:
@@ -78,19 +58,7 @@ class QuestionForm(forms.ModelForm):
         #get text from cleaned data
         text = self.cleaned_data.get("text")
         return normalize_and_validate_text(text, "text", "Question")
-    #    #case there is a text and it is not a whitespace
-    #     if text and len(text.strip()) > 0:
-    #         #normalize - remove spaces at the beginning/end and capitalize first letter
-    #         text = text.strip().capitalize()
-
-    #     #case there is no text or it is a whitespace
-    #     if not text or len(text.strip()) == 0:
-    #         #raise validation error
-    #         raise ValidationError("Questions cannot be empty.")
-
-    #     #return normalized text    
-    #     return text
-
+    
 class AnswerForm(forms.ModelForm):
     class Meta:
         model = Answer
@@ -105,9 +73,13 @@ class AnswerForm(forms.ModelForm):
 
     #validator to ensure answer is not duplicated for the same question
     def clean(self):
+        #get form cleaned data
         cleaned_data = super().clean()
+        #get the text
         text = cleaned_data.get("text")
+        #get the question
         question = cleaned_data.get("question")
+        #get the is_correct value
         is_correct = cleaned_data.get("is_correct")
 
         #case text and question exist
@@ -122,18 +94,27 @@ class AnswerForm(forms.ModelForm):
         
         #case question exists
         if is_correct:
+            #set is_correct to true
             self.cleaned_data["is_correct"] = True
         
         #return validated data
         return cleaned_data
     
+    #final validation once all answers have been created - ensure at least one answer is correct
     def final_validation(self):
+        #get the question
         question = self.cleaned_data.get("question")
+        #fetch the correct answers linked to the question
         correct_answers = Answer.objects.filter(question=question, is_correct=True)
+
+        #case the current answer is correct
         if self.cleaned_data.get("is_correct"):
+            #add it to the list of correct answers
             correct_answers = list(correct_answers) + [self.instance]
         
+        #case there are no correct answers
         if len(correct_answers) == 0:
+            #raise a validation error
             raise ValidationError("Questions must have at least one correct answer")
 
 class TestForm(forms.ModelForm):
@@ -141,17 +122,23 @@ class TestForm(forms.ModelForm):
         model = Test
         fields = ["title", "description", "deadline", "week"]
 
+    #validate the title
     def clean_title(self):
+        #get the title
         title = self.cleaned_data.get("title")
-        #
+        #returned the validated title
         return normalize_and_validate_text(title, "title", "Test")
     
+    #validate the description
     def clean_description(self):
+        #get the description
         description = self.cleaned_data.get("description")
-        #
+        #return the validated description
         return normalize_and_validate_text(description, "description", "Test")
     
+    #validate deadline
     def clean_deadline(self):
+        #get the deadline
         deadline = self.cleaned_data.get("deadline")
 
         #ensure the deadline is in the future
@@ -161,8 +148,10 @@ class TestForm(forms.ModelForm):
         
         #return validated deadline
         return deadline
-
+    
+    #validate week
     def clean_week(self):
+        #get week from form
         week = self.cleaned_data.get("week")
 
         #ensure the selected week exists
@@ -214,13 +203,6 @@ class WeekForm(forms.ModelForm):
         #return validated week_number
         return week_number
     
-    #validator to ensure the course exists
-    # def clean_course(self):
-    #     course = self.cleaned_data.get("course")
-
-    #     if not course:
-    #         #raise a validation error
-    #         raise ValidationError("Course is required.")
 
 class ResourceForm(forms.ModelForm):
     class Meta:
@@ -278,14 +260,17 @@ class FeedbackForm(forms.ModelForm):
         model = Feedback
         fields = ["feedback"]
 
+    #validate feedback
     def clean_feedback(self):
+        #get feedback
         feedback = self.cleaned_data.get('feedback')
-        print(feedback)
-
+        
+        #raise a validation error if it is too short/long
         if len(feedback.strip()) < 100:
             raise ValidationError("Feedback is too short. Please, provide more details.")
         elif len(feedback.strip()) > 600:
             raise ValidationError("Feedback is too long. Your feedback cannot be larger than 600 characters.")
         
+        #return validated feedback
         return feedback
 
