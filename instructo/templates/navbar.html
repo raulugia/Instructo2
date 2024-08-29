@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
-
+{% comment %} All the code in this file was written without assistance {% endcomment %}
 {% block content %}
 
 <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm">
@@ -17,14 +17,13 @@
                   <a class="nav-link active" aria-current="page" href="{% url 'users:home_view' %}">Home</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link" href="#">My Courses</a>
+                  <a class="nav-link" href="{% url 'my_courses_view' %}">My Courses</a>
                 </li>
+                {% if request.user.is_teacher %}
                 <li class="nav-item">
-                  <a class="nav-link" href="#">Friends</a>
+                  <a class="nav-link" href="{% url 'create_course_view' %}">Create Course</a>
                 </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="#">Chats</a>
-                </li>
+                {% endif %}
               </ul>
               
               <form action="{% url 'users:searchBar_view' %}" class="d-flex">
@@ -64,9 +63,12 @@
   }
 
   const displayNotifications = message => {
+    //get the toast container
     const toastContainer = document.getElementById("toast-container")
+    //generate a unique id
     const toastId = `toast-${Date.now()}`
 
+    //toast html
     const toastHtml = `
       <div class="toast" id="${toastId}" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false">
         <div class="toast-header">
@@ -78,15 +80,16 @@
       </div>
     </div>
     `
-
+    //insert toaster
     toastContainer.insertAdjacentHTML("beforeend", toastHtml)
 
-    //display the toast
+    //display the toast ensuring it does not hide automatically
     const toastElement = document.getElementById(toastId)
     const toast = new bootstrap.Toast(toastElement, { autohide: false })
 
     toast.show()
 
+    //add an event listener to the toast to close it
     toastElement.addEventListener("hidden.bs.toast", () => {
       toastElement.remove()
     })

@@ -16,6 +16,7 @@ from users.models import CustomUser
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.http import HttpResponseBadRequest
+from django.db.models import Count
 
 #All the code in this file was written without assistance
 
@@ -712,3 +713,36 @@ def test_form_view(request, course_id, week_number, test_id):
 
         #render the form with feedback
         return render(request, "courses/test_form.html", context)
+
+#view to see user's courses
+@login_required
+def my_courses_view(request):
+    if request.method == "GET":
+        if request.user.is_student:
+            #fetch the enrollments where the student is the current user
+            enrollments = Enrollment.objects.filter(student=request.user)
+            #extract the courses from the enrollments
+            courses = [enrollment.course for enrollment in enrollments]
+
+            #construct the context
+            context = {
+                "courses": courses,
+                "is_student": True
+            }
+
+            #render the template with the context
+            return render(request, "courses/my_courses.html", context)
+
+        #case the user is a teacher
+        elif request.user.is_teacher:
+            #fetch the courses created by the teacher and annotate them with the student count
+            courses = Course.objects.filter(teacher=request.user).annotate(student_count=Count("course_enrollments"))
+
+            #construct the context
+            context = {
+                "courses": courses,
+                "is_teacher": True
+            }
+
+            #render the template with the context
+            return render(request, "courses/my_courses.html", context)

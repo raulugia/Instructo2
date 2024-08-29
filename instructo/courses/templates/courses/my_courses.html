@@ -1,0 +1,30 @@
+{% extends "navbar.html" %}
+{% load custom_filters %}
+{% comment %} All the code in this file was written without assistance {% endcomment %}
+{% load static %}
+{% block maincontent %}
+<div class="d-flex min-vh-100 justify-content-between align-items-start bg-light pt-5 pb-5">
+    <div class="mt-5 px-4 me-4 py-4 w-100 bg-white d-flex flex-column gap-2 ps-5 border border-2 rounded-3" id="accordion">
+        <h4>My Courses</h4>
+            <div class="d-flex flex-column mt-4">
+                {% for course in courses %}
+                    <a href="{% url 'course_details_view' course.id %}" class="border-bottom d-flex py-3 text-black">
+                        <div class="rounded-3 me-5 overflow-hidden shadow-sm" style="width: 200px; height: 150px;">
+                            <img src="{{ course.cover_picture.thumbnail }}" onerror="this.onerror = null; this.src='{% static 'images/default_course_cover_picture.jpg' %}'" class="w-100 h-100"/>
+                        </div>
+                        <div class="d-flex flex-column justify-content-between">
+                            <div>
+                                <h4 class="mb-1">{{ course.title }}</h4>
+                                <p>{{ course.description }}</p>
+                            </div>
+                            <div>
+                                <p class="mb-0 fs-10">Developed by @{{ course.teacher }}</p>
+                                <p class="mb-0 fs-10">Duration: {{ course.duration_weeks }} weeks</p>
+                            </div>
+                        </div>    
+                    </a>
+                {% endfor %}
+            </div>
+    </div>
+</div>    
+{% endblock maincontent %}

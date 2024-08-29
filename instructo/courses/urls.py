@@ -7,6 +7,7 @@ from chat.views import group_chat_view
 
 urlpatterns = [
     path("create-course/", login_required(views.create_course_view, login_url="users:signIn_view"), name="create_course_view"),
+    path("my-courses/", login_required(views.my_courses_view, login_url="users:signIn_view"), name="my_courses_view"),
     path("course/<int:course_id>/", login_required(views.course_details_view, login_url="users:signIn_view"), name="course_details_view"),
     path("course/<int:course_id>/enroll/", login_required(views.enroll_course_view, login_url="users:signIn_view"), name="enroll_course_view"),
     path("my-courses/<int:course_id>/", login_required(views.my_course_details_view, login_url="users:signIn_view"), name="my_course_details_view"),
