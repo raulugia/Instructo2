@@ -16,7 +16,7 @@
             </div>
         </div>
         <h5 data-bs-toggle="collapse" data-bs-target ="#collapse" role="button">Weeks</h5>
-        <div class="ms-2 collapse" id="collapse">
+        <div class="ms-2 collapse" id="collapse show">
             {% for week in course_weeks %}
                 <a href="{% url 'my_course_details_view' course.id week.week_number %}">Week {{ week.week_number }}</a>
             {% endfor %}
@@ -36,21 +36,22 @@
 
     {% comment %} Left side {% endcomment %}
     <div class="mt-5 px-4 me-4 py-4 w-100 bg-white d-flex flex-column gap-2 ps-5 border border-2 rounded-3" id="accordion">
-        
+        <h1 class="fs-4 mb-2">Week {{ week_number }}</h1>
+        {% for lesson in lessons %}
         <div class="card">
             <div class="card-header" id="headingOne">
               <h5 class="mb-0">
-                <button class="btn fs-5" data-bs-toggle="collapse" data-bs-target ="#collapseLesson"  aria-controls="collapseOne" style="font-weight: 600">
-                  Lesson
+                <button class="btn fs-5" data-bs-toggle="collapse" data-bs-target ="#collapseLesson{{ lesson.lesson_number}}"  aria-controls="collapseOne" style="font-weight: 600">
+                  Lesson {{ lesson.lesson_number }} - {{ lesson.title }}
                 </button>
               </h5>
             </div>
         
-            <div id="collapseLesson" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+            <div id="collapseLesson{{ lesson.lesson_number }}" class="collapse {% if forloop.first %} show {% endif %}" aria-labelledby="headingOne" data-parent="#accordion">
               <div class="card-body">
-                <h4 class="mb-3">Learning Material For Week {{ week_number }}</h4>
-                {% for resource in course_data.resources %}
-                    <p class="mb-4">Read the following document before completing the test.</p>
+                <h4 class="mb-3">{{ lesson.title }}</h4>
+                <p class="mb-4">{{ lesson.description }}</p>
+                {% for resource in lesson.lesson_resources.all %}
                     <div class="border border-2 border-dark d-flex gap-2 py-2 px-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="26" fill="red" class="bi bi-file-pdf-fill" viewBox="0 0 16 16">
                             <path d="M5.523 10.424q.21-.124.459-.238a8 8 0 0 1-.45.606c-.28.337-.498.516-.635.572l-.035.012a.3.3 0 0 1-.026-.044c-.056-.11-.054-.216.04-.36.106-.165.319-.354.647-.548m2.455-1.647q-.178.037-.356.078a21 21 0 0 0 .5-1.05 12 12 0 0 0 .51.858q-.326.048-.654.114m2.525.939a4 4 0 0 1-.435-.41q.344.007.612.054c.317.057.466.147.518.209a.1.1 0 0 1 .026.064.44.44 0 0 1-.06.2.3.3 0 0 1-.094.124.1.1 0 0 1-.069.015c-.09-.003-.258-.066-.498-.256M8.278 4.97c-.04.244-.108.524-.2.829a5 5 0 0 1-.089-.346c-.076-.353-.087-.63-.046-.822.038-.177.11-.248.196-.283a.5.5 0 0 1 .145-.04c.013.03.028.092.032.198q.008.183-.038.465z"/>
@@ -62,6 +63,9 @@
               </div>
             </div>
         </div>
+        {% endfor %}
+
+        
         <div class="card">
             <div class="card-header" id="headingOne">
               <h5 class="mb-0">
@@ -73,7 +77,7 @@
         
             <div id="collapseTest" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
               <div class="card-body bg-light">
-                {% for test in course_data.tests %}
+                {% for test in tests %}
                 <div class="my-5 d-flex justify-content-between align-items-end w-100 border rounded-2 px-3 py-3 bg-white">
                         <div class="d-flex flex-column justify-content-between align-items-start w-100">
                             <div>

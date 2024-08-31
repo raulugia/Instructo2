@@ -245,7 +245,7 @@ def process_resource(resource_file, resource_type, course=None, lesson=None, sta
 
     #get the temp file full path
     file_path = save_temp_file(resource_file)
-
+    print("working on: ", file_path)
     #case the file is an image
     if resource.resource_format == "image":
         #create a thumbnail, upload both thumbnail and image and update resource with URLs

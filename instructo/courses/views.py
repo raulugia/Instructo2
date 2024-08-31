@@ -6,8 +6,8 @@ from .helpers import create_week, process_resource, notify_enrolled_students_abo
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from .models import Course, Enrollment, Week, Test, Lesson, UserAnswer, Answer, Resource, Feedback
-from .serializers import CourseResourcesSerializer, WeekSerializer, DetailsCoursesSerializer
+from .models import Course, Enrollment, Week, Test, UserAnswer, Answer, Resource, Feedback, Lesson
+from .serializers import WeekSerializer, DetailsCoursesSerializer
 from users.models import CustomUser
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -414,14 +414,25 @@ def my_course_details_view(request, course_id, week_number=None):
                         #serialize the fetched data
                         serializer = WeekSerializer(week, context={"student": user})
 
+                        lessons = Lesson.objects.filter(week=week).prefetch_related("lesson_resources")
+                        tests = Test.objects.filter(week=week)
+                        if tests:
+                            for test in tests:
+                                test.update_grade_if_past_deadline()
+                                is_passed = test.is_passed()
+
                         #construct the context
                         context ={
                             "course": course,
                             "enrollment": enrollment,
-                            "course_data": serializer.data,
                             "week_number": week_number,
                             "course_weeks": course_weeks,
+                            "is_passed": is_passed,
+                            "tests": tests,
+                            "lessons": lessons.all(),
                         }
+
+                        print(context)
 
                         #render the template with the context
                         return render(request, "courses/my_course_details.html", context)
@@ -449,12 +460,13 @@ def additional_resources_view(request, course_id):
         try:
             #fetch the course
             course = Course.objects.get(id=course_id)
-            #serialize the course to get the right data
-            serializer = CourseResourcesSerializer(course)
+            #get the course's additional resources
+            additional_resources = course.additional_resources.filter(resource_type="additional_resource").values("title", "file")
             
             #construct the context
             context={
-                "course_data": serializer.data
+                "course": course,
+                "additional_resources": additional_resources,
             }
 
             #render the template with the context
@@ -490,7 +502,6 @@ def grades_view(request, course_id):
                 #update the grade if the deadline has passed and the test ha snot been completed or failed
                 test.update_grade_if_past_deadline()
 
-                print(test.is_passed())
 
                 #append the data to the list
                 grades_data.append({

@@ -181,7 +181,6 @@ class WeekForm(forms.ModelForm):
     def clean_week_number(self):
         week_number = self.cleaned_data.get("week_number")
         course = self.cleaned_data.get("course")
-        print(f"week validator, self: {self}, week number: {week_number}, course: {course}")
 
         #case week number is < 1
         if week_number < 1:

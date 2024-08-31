@@ -112,24 +112,25 @@ class FeedbackSerializer(serializers.ModelSerializer):
 
 
 
-class ResourceSummarySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Resource
-        fields=["title", "file"]
+# class ResourceSummarySerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Resource
+#         fields=["title", "file"]
 
-class CourseResourcesSerializer(serializers.ModelSerializer):
-    #nested serializer to include additional resources
-    additional_resources = ResourceSummarySerializer(many=True, read_only=True)
-    #serializer method to include the cover picture thumbnail
-    cover_thumbnail = serializers.SerializerMethodField()
+# class CourseResourcesSerializer(serializers.ModelSerializer):
+#     #nested serializer to include additional resources
+#     additional_resources = ResourceSummarySerializer(many=True, read_only=True)
+#     #serializer method to include the cover picture thumbnail
+#     cover_thumbnail = serializers.SerializerMethodField()
 
-    class Meta:
-        model = Course
-        fields=["id","title", "cover_thumbnail", "additional_resources", "duration_weeks"]
+#     class Meta:
+#         model = Course
+#         fields=["id","title", "cover_thumbnail", "additional_resources", "duration_weeks"]
 
-    #method to get the course's thumbnail cover picture
-    def get_cover_thumbnail(self, obj):
-        return obj.cover_picture.thumbnail if obj.cover_picture else None
+#     #method to get the course's thumbnail cover picture
+#     def get_cover_thumbnail(self, obj):
+#         return obj.cover_picture.thumbnail if obj.cover_picture else None
+    
     
 
 
