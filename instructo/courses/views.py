@@ -193,7 +193,7 @@ def enroll_course_view(request, course_id):
                 
                 #case student was already enrolled
                 else:
-                    messages.error(request, "Your are already enrolled in this course.")
+                    messages.error(request, "You are already enrolled in this course.")
                     return redirect("course_details_view", course_id=course_id)
             
             #case user is a teacher - teachers cannot enroll in courses
@@ -283,7 +283,7 @@ def manage_resources_view(request, course_id):
     #redirect the user if the course does not exist       
     except Course.DoesNotExist:
         messages.error(request, "Course does not exist.")
-        return redirect("course_details_view", course_id=course_id)
+        return redirect("users:home_view")
     
     #case GET
     if request.method == "GET":

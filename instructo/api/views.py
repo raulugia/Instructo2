@@ -6,10 +6,21 @@ from users.models import CustomUser
 from courses.models import Course
 from chat.models import Message
 from .serializers import *
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+
 
 #All the code in this file was written without assistance
 
 #view to get own details
+@swagger_auto_schema(
+    #http method for this schema
+    method="get",
+    #description of what the API endpoint does
+    operation_description="Retrieve details of the authenticated user. The response will contain different fields depending on whether the user is a teacher or a student. Only authenticated users can access this data.",
+    #possible responses
+    responses={200: CustomUserTeacherSerializer, 403: "Permission Denied"},
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_own_user_details_view(request):
@@ -29,6 +40,16 @@ def get_own_user_details_view(request):
 
 
 #view to get the students in common between 2 teachers.
+@swagger_auto_schema(
+    #http method for this schema
+    method="get",
+    #description of what the API endpoint does
+    operation_description="This endpoint is only available for teachers. The response includes the students in common with another teacher. Only authenticated users can access this data.",
+    #possible responses
+    responses={200: CustomUserTeacherSerializer(many=True), 403: "Permission Denied", 404: "User Not Found"},
+    #details about the parameters
+    manual_parameters=[openapi.Parameter("username", openapi.IN_PATH, description= "Username of the other teacher", type=openapi.TYPE_STRING)],    
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_students_in_common_view(request, username):
@@ -66,6 +87,16 @@ def get_students_in_common_view(request, username):
         return Response({"error": "You must be a teacher to access this data."}, status=403)
 
 #view to get all the students enrolled in a course
+@swagger_auto_schema(
+    #http method for this schema
+    method="get",
+    #description of what the API endpoint does
+    operation_description="Retrieve a list of students enrolled in a specific course. Only authenticated users can access this data.",
+    #possible responses
+    responses={200: EnrolledStudentsSerializer(many=True), 404: "Course Not Found"},
+    #details about the parameters
+    manual_parameters=[openapi.Parameter("course_id", openapi.IN_PATH, description= "ID of the course", type=openapi.TYPE_INTEGER)],    
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_enrolled_students_view(request, course_id):
@@ -85,6 +116,16 @@ def get_enrolled_students_view(request, course_id):
         return Response({"error": "The course does not exist."}, status=404)
     
 #view to get all the course details
+@swagger_auto_schema(
+    #http method for this schema
+    method="get",
+    #description of what the API endpoint does
+    operation_description="Retrieve all details of a specific course including its weeks, lessons and tests. Only authenticated users can access this data.",
+    #possible responses
+    responses={200: CourseAllDetailsSerializer, 404: "Course Not Found"},
+    #details about the parameters
+    manual_parameters=[openapi.Parameter("course_id", openapi.IN_PATH, description= "ID of the course", type=openapi.TYPE_INTEGER)],    
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_course_details(request, course_id):
@@ -102,6 +143,16 @@ def get_course_details(request, course_id):
         return Response({"error": "The course does not exist."}, status=404)
 
 #view to get the chat messages of a course
+@swagger_auto_schema(
+    #http method for this schema
+    method="get",
+    #description of what the API endpoint does
+    operation_description="Retrieve the chat history of a specific course. Users must be authenticated enrolled students or course teacher to access this data.",
+    #possible responses
+    responses={200: MessageSerializer(many=True), 403: "Permission Denied", 404: "Course Not Found",},
+    #details about the parameters
+    manual_parameters=[openapi.Parameter("course_id", openapi.IN_PATH, description= "ID of the course", type=openapi.TYPE_INTEGER)],    
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_course_chat_history(request, course_id):
@@ -128,6 +179,16 @@ def get_course_chat_history(request, course_id):
         return Response({"error": "The course does not exist."}, status=404)
 
 #view to update a courses's title/description
+@swagger_auto_schema(
+    #http method for this schema
+    method="patch",
+    #description of what the API endpoint does
+    operation_description="Update the title and/or description of a specific course. User must be the course teacher to perform this operation.",
+    #possible responses
+    responses={200: CourseUpdateTitleDescSerializer, 400: "Bad Request", 403: "Permission Denied", 404: "Course Not Found",},
+    #details about the parameters
+    manual_parameters=[openapi.Parameter("course_id", openapi.IN_PATH, description= "ID of the course", type=openapi.TYPE_INTEGER)],    
+)
 @api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
 def update_course_title_description(request, course_id):
@@ -157,6 +218,16 @@ def update_course_title_description(request, course_id):
 
 
 #view to create a course
+@swagger_auto_schema(
+    #http method for this schema
+    method="post",
+    #description of what the API endpoint does
+    operation_description="Create a new course. User must be a teacher to perform this operation.",
+    #expected request body
+    request_body=Post_CourseSerializer,
+    #possible responses
+    responses={200: Post_CourseSerializer, 400: "Bad Request", 403: "Permission Denied",},   
+)
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_course(request):

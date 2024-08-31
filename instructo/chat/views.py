@@ -42,6 +42,8 @@ def group_chat_view(request, course_id):
             return render(request, "chat/my_course_chat.html", context)
         
         except Course.DoesNotExist:
-                return JsonResponse({"error": f"Course with id {course_id} was not found."}, status=404)
+                messages.error(request, "Course does not exist.")
+                return redirect("users:home_view", course_id=course_id)
         except Enrollment.DoesNotExist:
-                return JsonResponse({"error": f"Course with id {course_id} was not found."}, status=404)
+                messages.error(request, "Course does not exist.")
+                return redirect("courses:course_details_view", course_id=course_id)

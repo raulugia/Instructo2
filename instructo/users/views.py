@@ -80,6 +80,8 @@ def register_view(request):
         #case for is valid
         if(registration_form.is_valid()):
             profile_picture = request.FILES.get("profile_picture")
+            #default value
+            profile_picture_resource = None
 
             #case there is a profile picture:
             if profile_picture:
@@ -88,10 +90,10 @@ def register_view(request):
 
             #create a new user - do not save
             new_user = registration_form.save(commit=False)
-            print(f"password before hashing: {registration_form.cleaned_data['password1']}")
+
             #set hashed password
             new_user.set_password(registration_form.cleaned_data["password1"])
-            print(f"password after hashing: {new_user.password}")
+
             #set user's email
             new_user.email = registration_form.cleaned_data["email"]
 
@@ -298,8 +300,6 @@ def searchBar_view(request):
             "users": users,
             "courses": courses,
         }
-
-        print(context)
 
     #render the search results page with the context
     return render(request, "users/search_results.html", context)

@@ -66,11 +66,11 @@ class CourseDetailsViewTest(TestCase):
         #send a GET request to the course details view with a non-existent course id
         response = self.client.get(reverse("course_details_view", args=[854]))
 
-        #assert that the response status is 404
-        self.assertEqual(response.status_code, 404)
+        #assert that the response status is 302 redirect
+        self.assertEqual(response.status_code, 302)
 
-        #assert that the response contains the right error message
-        self.assertJSONEqual(response.content, {"error": "Course with id 854 was not found."})
+        #assert that the redirect is correct
+        self.assertRedirects(response, reverse("users:home_view"))
     
 
     

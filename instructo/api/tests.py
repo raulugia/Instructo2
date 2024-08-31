@@ -19,8 +19,8 @@ class APITests(TestCase):
         self.student = CustomUserFactory(is_teacher=False, is_student=True)
 
         #create cover pictures
-        self.cover_picture1 = ResourceFactory(file="https://example.com/path/to/cover_pic.jpeg", thumbnail="https://example.com/path/to/thumbnail_cover_pic.jpeg")
-        self.cover_picture2 = ResourceFactory(file="https://example.com/path/to/cover_pic.jpeg", thumbnail="https://example.com/path/to/thumbnail_cover_pic.jpeg")
+        self.cover_picture1 = ResourceFactory(file="https://example.com/path/to/cover_pic.jpeg", thumbnail="https://example.com/path/to/thumbnail_cover_pic.jpeg", resource_format="image", resource_type="user_profile_picture")
+        self.cover_picture2 = ResourceFactory(file="https://example.com/path/to/cover_pic.jpeg", thumbnail="https://example.com/path/to/thumbnail_cover_pic.jpeg", resource_format="image", resource_type="user_profile_picture")
 
         #create courses
         self.course1 = CourseFactory(teacher=self.teacher1, cover_picture=self.cover_picture1, duration_weeks=1)
@@ -264,16 +264,8 @@ class APITests(TestCase):
         #send a POST request to create the course
         response = self.client.post(reverse("create_course"), data=data_json, content_type="application/json")
 
-        if response.status_code != 200:
-            print("response data: ", response.data)
-
         #assert that the response status is 200
         self.assertEqual(response.status_code, 200)
-
-        print(response.data)
-
-        #assert that the course was created successfully
-        #self.assertEqual(Course.objects.count(), 1)
 
         #assert that the course data is correct
         self.assertEqual(response.data["title"], "Advanced python")

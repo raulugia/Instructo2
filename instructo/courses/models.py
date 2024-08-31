@@ -171,6 +171,29 @@ class Resource(models.Model):
 
     def __str__(self):
         return self.title
+    
+    #override clean method to include custom validation
+    def clean(self):
+        #ensure the cover picture is an image and of type "course_cover_picture"
+        if self.resource_type == 'course_cover_picture':
+            if self.resource_format != 'image':
+                raise ValidationError("The cover picture must be an image.")
+            if self.resource_type != 'course_cover_picture':
+                raise ValidationError("The resource type must be 'course_cover_picture' for course cover pictures.")
+        
+        #ensure the user profile picture is an image and of type "user_profile_picture"
+        if self.resource_type == 'user_profile_picture':
+            if self.resource_format != 'image':
+                raise ValidationError("The profile picture must be an image.")
+            if self.resource_type != 'user_profile_picture':
+                raise ValidationError("The resource type must be 'user_profile_picture' for profile pictures.")
+            
+        super().clean()
+    
+    def save(self, *args, **kwargs):
+        #ensure data is validated before saving
+        self.clean()
+        super().save(*args, **kwargs)
 
 #this model represent the students that enrolled in a course
 class Enrollment(models.Model):

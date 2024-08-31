@@ -398,7 +398,6 @@ class Post_CourseSerializer(serializers.ModelSerializer):
 
     #override the create method
     def create(self, validated_data):
-        print("validated data in create method: ", validated_data)
         #extract the weeks data from the validated data
         weeks_data = validated_data.pop('weeks')
         #extract the course cover picture data or set it to None

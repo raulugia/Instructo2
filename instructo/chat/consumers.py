@@ -7,22 +7,21 @@ from asgiref.sync import sync_to_async
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        #get the course id from the url
         self.course_id = self.scope["url_route"]["kwargs"]["course_id"]
+        #create a unique group name
         self.course_group_name = f"chat_{self.course_id}"
 
-        print(f"connecting to course {self.course_id} with group_name: {self.course_group_name}")
-
-        #join thr room group
+        #add the connection to the course chat group
         await self.channel_layer.group_add(self.course_group_name, self.channel_name)
-
+        #accept the connection
         await self.accept()
-        print("connection accepted")
+
     
     async def disconnect(self, code):
         await self.channel_layer.group_discard(self.course_group_name, self.channel_name)
     
     async def receive(self, text_data):
-        print("received message: ", text_data)
         message_json = json.loads(text_data)
         message_content = message_json["message"]
         sender_username = message_json["sender"]
@@ -60,3 +59,5 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "sender": sender,
             "timestamp": timestamp,
         }))
+
+        
