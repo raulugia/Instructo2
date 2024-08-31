@@ -4,7 +4,7 @@ from .models import CustomUser
 from django.contrib.auth.forms import SetPasswordForm
 from django.core.exceptions import ValidationError
 import re
-from datetime import date, datetime
+from datetime import date
 
 #All the code in this file was written without assistance
 

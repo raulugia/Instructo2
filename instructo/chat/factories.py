@@ -3,6 +3,8 @@ from .models import Message
 from users.factories import CustomUserFactory
 from courses.factories import CourseFactory
 
+#All the code in this file was written without assistance
+
 class MessageFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Message

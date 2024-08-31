@@ -4,6 +4,7 @@ from . import views
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 
+#namespace
 app_name = "status_updates"
 
 urlpatterns = [

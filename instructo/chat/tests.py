@@ -6,7 +6,9 @@ from django.urls import reverse
 from django.test import Client
 from courses.models import Course
 from .consumers import ChatConsumer
-from channels.testing import WebsocketCommunicator, ChannelsLiveServerTestCase
+from channels.testing import WebsocketCommunicator
+
+#All the code in this file was written without assistance
 
 # Create your tests here.
 class GroupChatViewTest(TestCase):

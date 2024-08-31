@@ -1,4 +1,4 @@
-from .models import Week, Test, Question, Answer, Resource, Lesson
+from .models import Resource
 
 from .forms import QuestionForm, AnswerForm, TestForm, WeekForm, LessonForm
 from django.core.exceptions import ValidationError

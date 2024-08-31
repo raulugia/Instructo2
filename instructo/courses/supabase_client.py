@@ -1,6 +1,5 @@
 from supabase import create_client
 from django.conf import settings
-import os
 
 #All the code in this file was written without assistance
 

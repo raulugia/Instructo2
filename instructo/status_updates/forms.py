@@ -2,9 +2,10 @@ from .models import StatusUpdate
 from django.core.exceptions import ValidationError
 from django.forms import ModelForm
 from django import forms
-from courses.models import Course, Resource
+from courses.models import Resource
 from courses.forms import normalize_and_validate_text
 
+#All the code in this file was written without assistance
 
 
 class StatusUpdateForm(ModelForm):

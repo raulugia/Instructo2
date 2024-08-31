@@ -3,7 +3,8 @@ from .models import Message
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import JsonResponse
+
+#All the code in this file was written without assistance
 
 #view to get the messages linked to the course - chat history
 @login_required

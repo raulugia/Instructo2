@@ -10,7 +10,6 @@ from courses.models import Course, Enrollment
 from django.db.models import Q
 from status_updates.models import StatusUpdate
 from status_updates.forms import StatusUpdateForm
-from django.core.exceptions import ValidationError
 from django.http import HttpResponseForbidden
 from .serializers import StatusUpdateSerializer, StudentHome_StatusUpdateSerializer, StudentHome_CourseSerializer, ProfileSerializer
 from courses.helpers import process_resource
@@ -279,12 +278,18 @@ def searchBar_view(request):
         
         #case query was provided
         if query:
-            #find users whose first name, last name or username contain the query
-            users = CustomUser.objects.filter(
-                Q(first_name__icontains=query) | 
-                Q(last_name__icontains=query) |
-                Q(username__icontains=query)
-            )
+            #default value for students
+            users = None
+
+            #case user is a teacher - students cannot discover other students
+            if request.user.is_teacher:
+                #find users whose first name, last name or username contain the query
+                users = CustomUser.objects.filter(
+                    Q(first_name__icontains=query) | 
+                    Q(last_name__icontains=query) |
+                    Q(username__icontains=query)
+                )
+
             #find the courses whose title contains the query
             courses = Course.objects.filter(title__icontains=query)
         

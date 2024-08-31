@@ -2,6 +2,9 @@ from django.db import models
 from django.conf import settings
 from courses.models import Course
 
+#All the code in this file was written without assistance
+
+#this model represents the status updates created by users
 class StatusUpdate(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="status_updates")
     content = models.CharField(max_length=500)

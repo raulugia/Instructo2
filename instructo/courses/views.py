@@ -1,17 +1,13 @@
 from django.shortcuts import render, redirect
-from django.urls import reverse
-from django.http import JsonResponse
 from .forms import CourseForm, FeedbackForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .helpers import create_week, get_file_format, save_temp_file, process_resource, notify_enrolled_students_about_resources
+from .helpers import create_week, process_resource, notify_enrolled_students_about_resources
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from .models import Course, Enrollment, Week, Test, Lesson, UserAnswer, Answer, Resource, Feedback
 from .serializers import CourseResourcesSerializer, WeekSerializer, DetailsCoursesSerializer
-from chat.models import Message
-import os
 from users.models import CustomUser
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync

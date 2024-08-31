@@ -7,6 +7,7 @@ from rest_framework import permissions
 
 #All the code in this file was written without assistance
 
+#import modules to generate the API schema views
 schema_view = get_schema_view(
    openapi.Info(
       title="Instructo API",

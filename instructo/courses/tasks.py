@@ -2,11 +2,7 @@ import os
 from .models import Resource
 from celery import shared_task
 from PIL import Image
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
-import requests
 from .supabase_client import upload_to_supabase
-import logging
 from loguru import logger
 import sys
 import uuid

@@ -1,6 +1,8 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 import json
 
+#All the code in this file was written without assistance
+
 class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         #create a unique group name that will be called when the connection is established

@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.forms import ModelForm
-from .models import Course, Question, Answer, Test, Lesson,Week, Resource, UserAnswer, Feedback
+from .models import Course, Question, Answer, Test, Lesson,Week, Resource, Feedback
 from django import forms
 from django.utils import timezone
 
